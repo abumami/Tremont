@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hebrew / Civil Calendar</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root{
+    --paper: #F6F3EC;
+    --paper-cell: #FDFCF9;
+    --ink: #2B2A28;
+    --ink-soft: #6B6559;
+    --rule: #DCD5C6;
+    --rule-strong: #C9C0AC;
+    --civil: #92562E;
+    --civil-soft: #C98F62;
+    --hebrew: #2C4A73;
+    --hebrew-soft: #6D8CB2;
+    --holiday-bg: #EFE3D0;
+    --holiday-text: #7A4A1E;
+    --parsha-bg: #E4EAE3;
+    --parsha-text: #3C5C46;
+    --omer-text: #8A7E5E;
+    --today-ring: #B14A34;
+    --shabbat-bg: #EEF1EC;
+  }
+
+  * { box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    padding: 28px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .wrap{ max-width: 980px; margin: 0 auto; }
+
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 16px;
+  }
+
+  .titles{ line-height:1.15; }
+  .civil-title{
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 700;
+    font-size: 34px;
+    color: var(--civil);
+    margin: 0;
+  }
+  .hebrew-title{
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--hebrew);
+    margin: 4px 0 0;
+    letter-spacing: 0.01em;
+  }
+
+  nav{ display:flex; align-items:center; gap: 10px; }
+  .nav-btn{
+    border: 1px solid var(--rule-strong);
+    background: var(--paper-cell);
+    color: var(--ink);
+    width: 34px; height: 34px;
+    border-radius: 3px;
+    font-size: 16px;
+    cursor: pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-family: inherit;
+  }
+  .nav-btn:hover{ border-color: var(--civil); color: var(--civil); }
+  .today-btn, .lang-btn{
+    border: 1px solid var(--rule-strong);
+    background: var(--paper-cell);
+    padding: 0 14px; height: 34px;
+    border-radius: 3px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-family: 'Source Serif 4', serif;
+  }
+  .today-btn:hover, .lang-btn:hover{ color: var(--civil); border-color: var(--civil); }
+  .lang-btn{ color: var(--hebrew); border-color: var(--hebrew-soft); }
+
+  .weekdays{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+  }
+  .weekdays div{
+    text-align:center;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    padding: 4px 0 8px;
+    font-family: 'Source Serif 4', serif;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(116px, auto);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+
+  .cell{
+    background: var(--paper-cell);
+    position: relative;
+    padding: 6px 7px 8px;
+    display:flex;
+    flex-direction:column;
+    cursor: pointer;
+    min-height: 116px;
+  }
+  .cell.pad{ background: #F1EDE3; }
+  .cell.pad .civil-num, .cell.pad .hebrew-num{ opacity: 0.35; }
+  .cell.shabbat{ background: var(--shabbat-bg); }
+  .cell:hover{ outline: 1px solid var(--civil-soft); outline-offset: -1px; }
+
+  .cell-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap: 6px;
+  }
+  .civil-num{
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--civil);
+  }
+  .hebrew-num{
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--hebrew);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .today .civil-num{
+    box-shadow: 0 0 0 2px var(--today-ring);
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .cell-body{
+    margin-top: 6px;
+    flex: 1;
+    display:flex;
+    flex-direction:column;
+    gap: 3px;
+    overflow: hidden;
+  }
+
+  .holiday-tag{
+    font-size: 10.5px;
+    line-height: 1.25;
+    color: var(--holiday-text);
+    background: var(--holiday-bg);
+    border-radius: 2px;
+    padding: 1px 5px;
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .parsha-tag{
+    font-size: 10.5px;
+    line-height: 1.25;
+    color: var(--parsha-text);
+    background: var(--parsha-bg);
+    border-radius: 2px;
+    padding: 1px 5px;
+    font-family: 'Source Serif 4', serif;
+    font-weight: 600;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .omer-tag{
+    font-size: 10px;
+    line-height: 1.2;
+    color: var(--omer-text);
+    font-style: italic;
+  }
+
+  .note-text{
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--ink);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .note-input{
+    width: 100%;
+    height: 100%;
+    resize: none;
+    border: none;
+    background: transparent;
+    font-family: 'Source Serif 4', serif;
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--ink);
+    padding: 0;
+  }
+  .note-input:focus{ outline: none; }
+
+  .legend{
+    display:flex;
+    gap: 22px;
+    margin-top: 22px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    align-items:center;
+    flex-wrap: wrap;
+  }
+  .legend span.dot{
+    display:inline-block; width:9px; height:9px; border-radius: 50%;
+    margin-right: 6px; vertical-align: middle;
+  }
+  .legend .civil-dot{ background: var(--civil); }
+  .legend .hebrew-dot{ background: var(--hebrew); }
+  .legend .holiday-dot{ background: var(--holiday-text); }
+  .legend .parsha-dot{ background: var(--parsha-text); }
+
+  .save-note{ font-size: 11px; color: var(--ink-soft); }
+
+  [dir="rtl"]{ direction: rtl; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="titles">
+      <h1 class="civil-title" id="civilTitle"></h1>
+      <p class="hebrew-title" id="hebrewTitle"></p>
+    </div>
+    <nav>
+      <button class="lang-btn" id="locBtn">Diaspora</button>
+      <button class="lang-btn" id="langBtn">עברית</button>
+      <button class="nav-btn" id="prevBtn" aria-label="Previous month">&#8249;</button>
+      <button class="today-btn" id="todayBtn">Today</button>
+      <button class="nav-btn" id="nextBtn" aria-label="Next month">&#8250;</button>
+    </nav>
+  </header>
+
+  <div class="weekdays" id="weekdays"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="legend">
+    <div><span class="dot civil-dot"></span><span id="legendCivil"></span></div>
+    <div><span class="dot hebrew-dot"></span><span id="legendHebrew"></span></div>
+    <div><span class="dot parsha-dot"></span><span id="legendParsha"></span></div>
+    <div><span class="dot holiday-dot"></span><span id="legendHoliday"></span></div>
+    <div class="save-note" id="saveNote"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const civilTitle = document.getElementById('civilTitle');
+  const hebrewTitle = document.getElementById('hebrewTitle');
+  const saveNote = document.getElementById('saveNote');
+  const weekdaysEl = document.getElementById('weekdays');
+  const langBtn = document.getElementById('langBtn');
+  const todayBtn = document.getElementById('todayBtn');
+
+  // ---- i18n ----
+  const MONTH_NAMES_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTH_NAMES_HE = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  const WEEKDAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const WEEKDAYS_HE = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+
+  const STRINGS = {
+    en: {
+      today: 'Today', langToggle: 'עברית',
+      addNote: 'Add a note or event…', saved: 'Saved', couldNotSave: 'Could not save',
+      legendCivil: 'Civil date', legendHebrew: 'Hebrew date',
+      legendParsha: 'Torah portion (Shabbat)',
+      legendHoliday: 'Holiday (verify times/dates for observance)',
+      omer: (n) => 'Omer, day ' + n,
+      locDiaspora: 'Diaspora', locIsrael: 'Israel'
+    },
+    he: {
+      today: 'היום', langToggle: 'English',
+      addNote: 'הוסף הערה או אירוע…', saved: 'נשמר', couldNotSave: 'לא ניתן לשמור',
+      legendCivil: 'תאריך אזרחי', legendHebrew: 'תאריך עברי',
+      legendParsha: 'פרשת השבוע',
+      legendHoliday: 'חג (יש לוודא זמנים/תאריכים מדויקים)',
+      omer: (n) => 'העומר, יום ' + n,
+      locDiaspora: 'תפוצות', locIsrael: 'ישראל'
+    }
+  };
+
+  // Fallback holiday table (used only if the live Hebcal lookup fails), keyed by
+  // English Hebrew-month name -> day -> {en, he}
+  const HOLIDAYS_FALLBACK = {
+    'Tishrei': {
+      1: {en:'Rosh Hashanah', he:'ראש השנה'}, 2: {en:'Rosh Hashanah', he:'ראש השנה'},
+      3: {en:'Fast of Gedaliah', he:'צום גדליה'},
+      10: {en:'Yom Kippur', he:'יום כיפור'},
+      15: {en:'Sukkot', he:'סוכות'}, 16: {en:'Sukkot', he:'סוכות'},
+      17: {en:'Chol HaMoed Sukkot', he:'חול המועד סוכות'}, 18: {en:'Chol HaMoed Sukkot', he:'חול המועד סוכות'},
+      19: {en:'Chol HaMoed Sukkot', he:'חול המועד סוכות'}, 20: {en:'Chol HaMoed Sukkot', he:'חול המועד סוכות'},
+      21: {en:'Hoshana Rabbah', he:'הושענא רבה'},
+      22: {en:'Shemini Atzeret', he:'שמיני עצרת'}, 23: {en:'Simchat Torah', he:'שמחת תורה'}
+    },
+    'Tevet': { 10: {en:"Asara B'Tevet (fast)", he:'עשרה בטבת'} },
+    'Shevat': { 15: {en:'Tu BiShvat', he:'ט״ו בשבט'} },
+    'Adar': { 13: {en:"Ta'anit Esther (fast)", he:'תענית אסתר'}, 14: {en:'Purim', he:'פורים'}, 15: {en:'Shushan Purim', he:'שושן פורים'} },
+    'Adar II': { 13: {en:"Ta'anit Esther (fast)", he:'תענית אסתר'}, 14: {en:'Purim', he:'פורים'}, 15: {en:'Shushan Purim', he:'שושן פורים'} },
+    'Nisan': {
+      14: {en:'Erev Pesach', he:'ערב פסח'}, 15: {en:'Pesach', he:'פסח'}, 16: {en:'Pesach', he:'פסח'},
+      17: {en:'Chol HaMoed Pesach', he:'חול המועד פסח'}, 18: {en:'Chol HaMoed Pesach', he:'חול המועד פסח'},
+      19: {en:'Chol HaMoed Pesach', he:'חול המועד פסח'}, 20: {en:'Chol HaMoed Pesach', he:'חול המועד פסח'},
+      21: {en:'Pesach', he:'פסח'}, 22: {en:'Pesach', he:'פסח'},
+      27: {en:'Yom HaShoah', he:'יום השואה'}
+    },
+    'Iyar': { 5: {en:'Yom HaAtzmaut*', he:'יום העצמאות*'}, 18: {en:'Lag BaOmer', he:'ל״ג בעומר'}, 28: {en:'Yom Yerushalayim', he:'יום ירושלים'} },
+    'Sivan': { 6: {en:'Shavuot', he:'שבועות'}, 7: {en:'Shavuot', he:'שבועות'} },
+    'Tamuz': { 17: {en:"Tzom Tammuz (fast)", he:'צום תמוז'} },
+    'Av': { 9: {en:"Tisha B'Av (fast)", he:'תשעה באב'}, 15: {en:"Tu B'Av", he:'ט״ו באב'} }
+  };
+
+  // ---- Hebrew-date helpers ----
+  const hebFmtEnCache = new Intl.DateTimeFormat('en-u-ca-hebrew', { year:'numeric', month:'long', day:'numeric' });
+  const hebFmtHeCache = new Intl.DateTimeFormat('he-u-ca-hebrew-nu-hebr', { year:'numeric', month:'long', day:'numeric' });
+
+  function hebrewPartsEn(date){
+    const parts = hebFmtEnCache.formatToParts(date);
+    const map = {};
+    parts.forEach(p => map[p.type] = p.value);
+    return { day: parseInt(map.day,10), month: map.month, year: map.year };
+  }
+  function hebrewPartsDisplay(date, lang){
+    const fmt = lang === 'he' ? hebFmtHeCache : hebFmtEnCache;
+    const parts = fmt.formatToParts(date);
+    const map = {};
+    parts.forEach(p => map[p.type] = p.value);
+    return { day: map.day, month: map.month, year: map.year };
+  }
+
+  function isoKey(date){
+    return date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
+  }
+
+  function findAnchor(monthName, day, refDate, radius){
+    for (let o = -radius; o <= radius; o++){
+      const d = new Date(refDate);
+      d.setDate(d.getDate() + o);
+      const hp = hebrewPartsEn(d);
+      if (hp.month === monthName && hp.day === day) return d;
+    }
+    return null;
+  }
+
+  // ---- Live data from Hebcal (holidays + parashat hashavua) ----
+  const hebcalCache = new Map();
+  async function fetchHebcal(startDate, endDate, israel){
+    const start = isoKey(startDate);
+    const end = isoKey(endDate);
+    const cacheKey = start + '_' + end + '_' + (israel ? 'il' : 'diaspora');
+    if (hebcalCache.has(cacheKey)) return hebcalCache.get(cacheKey);
+    const url = 'https://www.hebcal.com/hebcal?cfg=json&start=' + start + '&end=' + end +
+      '&maj=on&min=on&mod=on&mf=on&s=on&c=off&i=' + (israel ? 'on' : 'off') + '&lg=s';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Hebcal request failed');
+    const data = await res.json();
+    const byDate = {};
+    (data.items || []).forEach(item => {
+      const d = item.date ? item.date.slice(0,10) : null;
+      if (!d) return;
+      if (!byDate[d]) byDate[d] = { holidays: [], parsha: null };
+      if (item.category === 'parashat'){
+        byDate[d].parsha = { en: item.title.replace(/^Parashat\s+/,''), he: (item.hebrew||'').replace(/^פרשת\s+/,'') };
+      } else if (item.category === 'holiday' || item.category === 'roshchodesh'){
+        byDate[d].holidays.push({ en: item.title, he: item.hebrew || item.title });
+      }
+    });
+    hebcalCache.set(cacheKey, byDate);
+    return byDate;
+  }
+
+  // ---- Notes storage ----
+  const notesCache = {};
+  async function loadNote(key){
+    if (key in notesCache) return notesCache[key];
+    try{
+      const res = await window.storage.get('note:' + key);
+      notesCache[key] = res ? res.value : '';
+    }catch(e){
+      notesCache[key] = '';
+    }
+    return notesCache[key];
+  }
+  async function saveNoteFor(key, value){
+    notesCache[key] = value;
+    const S = STRINGS[lang];
+    try{
+      if (value && value.trim().length){
+        await window.storage.set('note:' + key, value);
+      } else {
+        await window.storage.delete('note:' + key);
+      }
+      saveNote.textContent = S.saved;
+      setTimeout(()=>{ saveNote.textContent=''; }, 1200);
+    }catch(e){
+      saveNote.textContent = S.couldNotSave;
+      setTimeout(()=>{ saveNote.textContent=''; }, 1500);
+    }
+  }
+
+  // ---- State ----
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let viewYear = today.getFullYear();
+  let viewMonth = today.getMonth();
+  let lang = 'en';
+  let israel = false;
+  const locBtn = document.getElementById('locBtn');
+
+  function applyStaticStrings(){
+    const S = STRINGS[lang];
+    todayBtn.textContent = S.today;
+    langBtn.textContent = S.langToggle;
+    locBtn.textContent = israel ? S.locDiaspora : S.locIsrael;
+    document.getElementById('legendCivil').textContent = S.legendCivil;
+    document.getElementById('legendHebrew').textContent = S.legendHebrew;
+    document.getElementById('legendParsha').textContent = S.legendParsha;
+    document.getElementById('legendHoliday').textContent = S.legendHoliday;
+
+    weekdaysEl.innerHTML = '';
+    const names = lang === 'he' ? WEEKDAYS_HE : WEEKDAYS_EN;
+    names.forEach(n => {
+      const div = document.createElement('div');
+      div.textContent = n;
+      weekdaysEl.appendChild(div);
+    });
+  }
+
+  async function render(){
+    applyStaticStrings();
+    grid.innerHTML = '';
+
+    const firstOfMonth = new Date(viewYear, viewMonth, 1);
+    const lastOfMonth = new Date(viewYear, viewMonth+1, 0);
+    const startDow = firstOfMonth.getDay();
+    const totalDaysShown = Math.ceil((startDow + lastOfMonth.getDate()) / 7) * 7;
+    const gridStart = new Date(firstOfMonth);
+    gridStart.setDate(gridStart.getDate() - startDow);
+    const gridEnd = new Date(gridStart);
+    gridEnd.setDate(gridEnd.getDate() + totalDaysShown - 1);
+
+    // Titles
+    civilTitle.textContent = (lang === 'he' ? MONTH_NAMES_HE[viewMonth] : MONTH_NAMES_EN[viewMonth]) + ' ' + viewYear;
+    civilTitle.dir = lang === 'he' ? 'rtl' : 'ltr';
+
+    const hStart = hebrewPartsDisplay(firstOfMonth, lang);
+    const hEnd = hebrewPartsDisplay(lastOfMonth, lang);
+    const dash = lang === 'he' ? ' – ' : ' – ';
+    if (hStart.month === hEnd.month && hStart.year === hEnd.year){
+      hebrewTitle.textContent = hStart.month + ' ' + hStart.year;
+    } else if (hStart.year === hEnd.year){
+      hebrewTitle.textContent = hStart.month + dash + hEnd.month + ' ' + hEnd.year;
+    } else {
+      hebrewTitle.textContent = hStart.month + ' ' + hStart.year + dash + hEnd.month + ' ' + hEnd.year;
+    }
+    hebrewTitle.dir = lang === 'he' ? 'rtl' : 'ltr';
+
+    // Offline anchors: Chanukah (Kislev 25, 8 days) and Omer (Nisan 16, 49 days)
+    const chanukahAnchor = findAnchor('Kislev', 25, firstOfMonth, 200);
+    const omerAnchor = findAnchor('Nisan', 16, firstOfMonth, 200);
+    const chanukahMap = {};
+    if (chanukahAnchor){
+      for (let i=0;i<8;i++){
+        const d = new Date(chanukahAnchor); d.setDate(d.getDate()+i);
+        chanukahMap[isoKey(d)] = i+1;
+      }
+    }
+    const omerMap = {};
+    if (omerAnchor){
+      for (let i=0;i<49;i++){
+        const d = new Date(omerAnchor); d.setDate(d.getDate()+i);
+        omerMap[isoKey(d)] = i+1;
+      }
+    }
+
+    // Build cells
+    const cellRefs = {};
+    for (let i=0; i<totalDaysShown; i++){
+      const d = new Date(gridStart);
+      d.setDate(d.getDate() + i);
+      const key = isoKey(d);
+      const isPad = d.getMonth() !== viewMonth;
+      const isToday = d.getTime() === today.getTime();
+      const isShabbat = d.getDay() === 6;
+
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (isPad ? ' pad' : '') + (isToday ? ' today' : '') + (isShabbat ? ' shabbat' : '');
+
+      const head = document.createElement('div');
+      head.className = 'cell-head';
+
+      const civilNum = document.createElement('div');
+      civilNum.className = 'civil-num';
+      civilNum.textContent = d.getDate();
+
+      const hp = hebrewPartsDisplay(d, lang);
+      const hebrewNum = document.createElement('div');
+      hebrewNum.className = 'hebrew-num';
+      hebrewNum.dir = lang === 'he' ? 'rtl' : 'ltr';
+      hebrewNum.textContent = lang === 'he' ? (hp.day + ' ' + hp.month) : (hp.day + ' ' + hp.month);
+
+      head.appendChild(civilNum);
+      head.appendChild(hebrewNum);
+      cell.appendChild(head);
+
+      const body = document.createElement('div');
+      body.className = 'cell-body';
+
+      // Omer tag (offline, always available in-season)
+      if (omerMap[key]){
+        const om = document.createElement('div');
+        om.className = 'omer-tag';
+        om.dir = lang === 'he' ? 'rtl' : 'ltr';
+        om.textContent = STRINGS[lang].omer(omerMap[key]);
+        body.appendChild(om);
+      }
+
+      // Placeholder holders for holiday/parsha tags, filled in after Hebcal resolves (or from fallback)
+      const tagsHolder = document.createElement('div');
+      tagsHolder.className = 'tags-holder';
+      body.appendChild(tagsHolder);
+
+      const noteDisplay = document.createElement('div');
+      noteDisplay.className = 'note-text';
+      body.appendChild(noteDisplay);
+      loadNote(key).then(val => { noteDisplay.textContent = val || ''; });
+
+      cell.appendChild(body);
+
+      cell.addEventListener('click', () => {
+        if (cell.querySelector('textarea')) return;
+        const textarea = document.createElement('textarea');
+        textarea.className = 'note-input';
+        textarea.value = notesCache[key] || '';
+        textarea.placeholder = STRINGS[lang].addNote;
+        noteDisplay.replaceWith(textarea);
+        textarea.focus();
+        const finish = () => {
+          const val = textarea.value;
+          saveNoteFor(key, val);
+          const nd = document.createElement('div');
+          nd.className = 'note-text';
+          nd.textContent = val;
+          textarea.replaceWith(nd);
+        };
+        textarea.addEventListener('blur', finish);
+        textarea.addEventListener('keydown', (e) => { if (e.key === 'Escape') textarea.blur(); });
+        textarea.addEventListener('click', (e) => e.stopPropagation());
+      });
+
+      grid.appendChild(cell);
+      cellRefs[key] = { tagsHolder, isShabbat, date: d };
+    }
+
+    // Fill holiday + parsha tags: prefer live Hebcal data, fall back to offline table
+    function renderTagsFromFallback(){
+      Object.keys(cellRefs).forEach(key => {
+        const { tagsHolder, date } = cellRefs[key];
+        tagsHolder.innerHTML = '';
+        const chanukahDay = chanukahMap[key];
+        if (chanukahDay){
+          const tag = document.createElement('div');
+          tag.className = 'holiday-tag';
+          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
+          tag.textContent = lang === 'he' ? ('חנוכה, נר ' + chanukahDay) : ('Chanukah (day ' + chanukahDay + ')');
+          tagsHolder.appendChild(tag);
+          return;
+        }
+        const hp = hebrewPartsEn(date);
+        const entry = HOLIDAYS_FALLBACK[hp.month] && HOLIDAYS_FALLBACK[hp.month][hp.day];
+        if (entry){
+          const tag = document.createElement('div');
+          tag.className = 'holiday-tag';
+          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
+          tag.textContent = lang === 'he' ? entry.he : entry.en;
+          tagsHolder.appendChild(tag);
+        }
+      });
+    }
+
+    try{
+      const events = await fetchHebcal(gridStart, gridEnd, israel);
+      Object.keys(cellRefs).forEach(key => {
+        const { tagsHolder } = cellRefs[key];
+        tagsHolder.innerHTML = '';
+        const info = events[key];
+        if (!info) return;
+        if (info.parsha){
+          const tag = document.createElement('div');
+          tag.className = 'parsha-tag';
+          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
+          tag.textContent = lang === 'he' ? ('פרשת ' + info.parsha.he) : ('Parashat ' + info.parsha.en);
+          tagsHolder.appendChild(tag);
+        }
+        info.holidays.forEach(h => {
+          const tag = document.createElement('div');
+          tag.className = 'holiday-tag';
+          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
+          tag.textContent = lang === 'he' ? h.he : h.en;
+          tagsHolder.appendChild(tag);
+        });
+      });
+    }catch(e){
+      renderTagsFromFallback();
+    }
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    viewMonth -= 1;
+    if (viewMonth < 0){ viewMonth = 11; viewYear -= 1; }
+    render();
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    viewMonth += 1;
+    if (viewMonth > 11){ viewMonth = 0; viewYear += 1; }
+    render();
+  });
+  todayBtn.addEventListener('click', () => {
+    viewYear = today.getFullYear();
+    viewMonth = today.getMonth();
+    render();
+  });
+  langBtn.addEventListener('click', () => {
+    lang = lang === 'en' ? 'he' : 'en';
+    render();
+  });
+  locBtn.addEventListener('click', () => {
+    israel = !israel;
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
