@@ -1,0 +1,287 @@
+@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root{
+  --paper: #F6F3EC;
+  --paper-cell: #FDFCF9;
+  --ink: #2B2A28;
+  --ink-soft: #6B6559;
+  --rule: #DCD5C6;
+  --rule-strong: #C9C0AC;
+  --civil: #92562E;
+  --civil-soft: #C98F62;
+  --hebrew: #2C4A73;
+  --hebrew-soft: #6D8CB2;
+  --holiday-bg: #EFE3D0;
+  --holiday-text: #7A4A1E;
+  --parsha-bg: #E4EAE3;
+  --parsha-text: #3C5C46;
+  --omer-text: #8A7E5E;
+  --today-ring: #B14A34;
+  --shabbat-bg: #EEF1EC;
+}
+
+* { box-sizing: border-box; }
+
+html{ -webkit-text-size-adjust: 100%; }
+
+body{
+  margin:0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Source Serif 4', Georgia, serif;
+  padding: clamp(12px, 4vw, 28px) clamp(8px, 3vw, 20px) 60px;
+  min-height: 100vh;
+}
+
+.wrap{ max-width: 980px; margin: 0 auto; }
+
+header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-bottom: clamp(14px, 3vw, 22px);
+  border-bottom: 1px solid var(--rule-strong);
+  padding-bottom: 14px;
+}
+
+.titles{ line-height:1.15; }
+.civil-title{
+  font-family: 'Frank Ruhl Libre', serif;
+  font-weight: 700;
+  font-size: clamp(22px, 6vw, 34px);
+  color: var(--civil);
+  margin: 0;
+}
+.hebrew-title{
+  font-family: 'Frank Ruhl Libre', serif;
+  font-weight: 500;
+  font-size: clamp(13px, 3.4vw, 17px);
+  color: var(--hebrew);
+  margin: 4px 0 0;
+  letter-spacing: 0.01em;
+}
+
+nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
+.nav-btn{
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-cell);
+  color: var(--ink);
+  width: 36px; height: 36px;
+  border-radius: 3px;
+  font-size: 16px;
+  cursor: pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-family: inherit;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-btn:hover{ border-color: var(--civil); color: var(--civil); }
+.today-btn, .lang-btn{
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-cell);
+  padding: 0 12px; height: 36px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-family: 'Source Serif 4', serif;
+  -webkit-tap-highlight-color: transparent;
+}
+.today-btn:hover, .lang-btn:hover{ color: var(--civil); border-color: var(--civil); }
+.lang-btn{ color: var(--hebrew); border-color: var(--hebrew-soft); }
+
+.weekdays{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+.weekdays div{
+  text-align:center;
+  font-size: clamp(9px, 2.6vw, 11px);
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  padding: 4px 0 6px;
+  font-family: 'Source Serif 4', serif;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(72px, auto);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+
+.cell{
+  background: var(--paper-cell);
+  position: relative;
+  padding: 4px 4px 6px;
+  display:flex;
+  flex-direction:column;
+  cursor: pointer;
+  min-height: 72px;
+  min-width: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.cell.pad{ background: #F1EDE3; }
+.cell.pad .civil-num, .cell.pad .hebrew-num{ opacity: 0.35; }
+.cell.shabbat{ background: var(--shabbat-bg); }
+.cell:hover{ outline: 1px solid var(--civil-soft); outline-offset: -1px; }
+
+.cell-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+.civil-num{
+  font-family: 'Frank Ruhl Libre', serif;
+  font-weight: 700;
+  font-size: clamp(12px, 3.2vw, 17px);
+  color: var(--civil);
+  flex-shrink: 0;
+}
+.hebrew-num{
+  font-family: 'Frank Ruhl Libre', serif;
+  font-weight: 500;
+  font-size: clamp(9px, 2.4vw, 13px);
+  color: var(--hebrew);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.today .civil-num{
+  box-shadow: 0 0 0 2px var(--today-ring);
+  border-radius: 50%;
+  width: 1.6em; height: 1.6em;
+  display:flex; align-items:center; justify-content:center;
+}
+
+.cell-body{
+  margin-top: 4px;
+  flex: 1;
+  display:flex;
+  flex-direction:column;
+  gap: 2px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.holiday-tag{
+  font-size: clamp(8px, 2.2vw, 10.5px);
+  line-height: 1.2;
+  color: var(--holiday-text);
+  background: var(--holiday-bg);
+  border-radius: 2px;
+  padding: 1px 4px;
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.parsha-tag{
+  font-size: clamp(8px, 2.2vw, 10.5px);
+  line-height: 1.2;
+  color: var(--parsha-text);
+  background: var(--parsha-bg);
+  border-radius: 2px;
+  padding: 1px 4px;
+  font-family: 'Source Serif 4', serif;
+  font-weight: 600;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.omer-tag{
+  font-size: clamp(7.5px, 2vw, 10px);
+  line-height: 1.15;
+  color: var(--omer-text);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-text{
+  font-size: clamp(9px, 2.3vw, 11px);
+  line-height: 1.25;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-input{
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: none;
+  background: transparent;
+  font-family: 'Source Serif 4', serif;
+  font-size: max(11px, 16px);
+  line-height: 1.3;
+  color: var(--ink);
+  padding: 0;
+}
+.note-input:focus{ outline: none; }
+
+.legend{
+  display:flex;
+  gap: 14px 22px;
+  margin-top: 20px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  align-items:center;
+  flex-wrap: wrap;
+}
+.legend span.dot{
+  display:inline-block; width:9px; height:9px; border-radius: 50%;
+  margin-right: 6px; vertical-align: middle;
+  flex-shrink: 0;
+}
+.legend .civil-dot{ background: var(--civil); }
+.legend .hebrew-dot{ background: var(--hebrew); }
+.legend .holiday-dot{ background: var(--holiday-text); }
+.legend .parsha-dot{ background: var(--parsha-text); }
+
+.save-note{ font-size: 11px; color: var(--ink-soft); }
+
+[dir="rtl"]{ direction: rtl; }
+
+/* ---- Mobile breakpoints ---- */
+@media (max-width: 640px){
+  header{ gap: 8px 10px; }
+  .titles{ order: 1; width: 100%; }
+  nav{ order: 2; width: 100%; justify-content: space-between; }
+  .grid{ grid-auto-rows: minmax(64px, auto); }
+  .cell{ min-height: 64px; padding: 3px 3px 5px; }
+  .legend{ font-size: 10.5px; gap: 10px 16px; }
+  .legend > div:not(:last-child){ flex: 1 1 42%; }
+}
+
+@media (max-width: 420px){
+  .cell-body{ gap: 1px; }
+  .hebrew-num{ max-width: 58%; }
+  .grid{ grid-auto-rows: minmax(58px, auto); }
+  .cell{ min-height: 58px; }
+  /* On very narrow phones, keep only the most important tag per day to avoid clipping */
+  .cell-body .omer-tag{ display: none; }
+}
+
+@media (hover: none) and (pointer: coarse){
+  .nav-btn, .today-btn, .lang-btn{ min-height: 40px; }
+  .cell{ -webkit-user-select: none; user-select: none; }
+}
