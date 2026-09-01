@@ -110,7 +110,7 @@
   .grid{
     display:grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-auto-rows: minmax(116px, auto);
+    grid-auto-rows: minmax(120px, auto);
     gap: 1px;
     background: var(--rule);
     border: 1px solid var(--rule);
@@ -123,7 +123,7 @@
     display:flex;
     flex-direction:column;
     cursor: pointer;
-    min-height: 116px;
+    min-height: 120px;
   }
   .cell.pad{ background: #F1EDE3; }
   .cell.pad .civil-num, .cell.pad .hebrew-num{ opacity: 0.35; }
@@ -253,7 +253,7 @@
       <p class="hebrew-title" id="hebrewTitle"></p>
     </div>
     <nav>
-      <button class="lang-btn" id="locBtn">Diaspora</button>
+      <button class="lang-btn" id="locBtn">Israel</button>
       <button class="lang-btn" id="langBtn">עברית</button>
       <button class="nav-btn" id="prevBtn" aria-label="Previous month">&#8249;</button>
       <button class="today-btn" id="todayBtn">Today</button>
@@ -283,8 +283,9 @@
   const weekdaysEl = document.getElementById('weekdays');
   const langBtn = document.getElementById('langBtn');
   const todayBtn = document.getElementById('todayBtn');
+  const locBtn = document.getElementById('locBtn');
 
-  // ---- i18n ----
+  // ================= i18n =================
   const MONTH_NAMES_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const MONTH_NAMES_HE = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
   const WEEKDAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -296,9 +297,10 @@
       addNote: 'Add a note or event…', saved: 'Saved', couldNotSave: 'Could not save',
       legendCivil: 'Civil date', legendHebrew: 'Hebrew date',
       legendParsha: 'Torah portion (Shabbat)',
-      legendHoliday: 'Holiday (verify times/dates for observance)',
+      legendHoliday: 'Holiday (approximate — verify for observance)',
       omer: (n) => 'Omer, day ' + n,
-      locDiaspora: 'Diaspora', locIsrael: 'Israel'
+      locDiaspora: 'Diaspora', locIsrael: 'Israel',
+      parshatPrefix: 'Parashat '
     },
     he: {
       today: 'היום', langToggle: 'English',
@@ -307,41 +309,27 @@
       legendParsha: 'פרשת השבוע',
       legendHoliday: 'חג (יש לוודא זמנים/תאריכים מדויקים)',
       omer: (n) => 'העומר, יום ' + n,
-      locDiaspora: 'תפוצות', locIsrael: 'ישראל'
+      locDiaspora: 'תפוצות', locIsrael: 'ישראל',
+      parshatPrefix: 'פרשת '
     }
   };
 
-  // Fallback holiday table (used only if the live Hebcal lookup fails), keyed by
-  // English Hebrew-month name -> day -> {en, he}
-  const HOLIDAYS_FALLBACK = {
-    'Tishrei': {
-      1: {en:'Rosh Hashanah', he:'ראש השנה'}, 2: {en:'Rosh Hashanah', he:'ראש השנה'},
-      3: {en:'Fast of Gedaliah', he:'צום גדליה'},
-      10: {en:'Yom Kippur', he:'יום כיפור'},
-      15: {en:'Sukkot', he:'סוכות'}, 16: {en:'Sukkot', he:'סוכות'},
-      17: {en:'Chol HaMoed Sukkot', he:'חול המועד סוכות'}, 18: {en:'Chol HaMoed Sukkot', he:'חול המועד סוכות'},
-      19: {en:'Chol HaMoed Sukkot', he:'חול המועד סוכות'}, 20: {en:'Chol HaMoed Sukkot', he:'חול המועד סוכות'},
-      21: {en:'Hoshana Rabbah', he:'הושענא רבה'},
-      22: {en:'Shemini Atzeret', he:'שמיני עצרת'}, 23: {en:'Simchat Torah', he:'שמחת תורה'}
-    },
-    'Tevet': { 10: {en:"Asara B'Tevet (fast)", he:'עשרה בטבת'} },
-    'Shevat': { 15: {en:'Tu BiShvat', he:'ט״ו בשבט'} },
-    'Adar': { 13: {en:"Ta'anit Esther (fast)", he:'תענית אסתר'}, 14: {en:'Purim', he:'פורים'}, 15: {en:'Shushan Purim', he:'שושן פורים'} },
-    'Adar II': { 13: {en:"Ta'anit Esther (fast)", he:'תענית אסתר'}, 14: {en:'Purim', he:'פורים'}, 15: {en:'Shushan Purim', he:'שושן פורים'} },
-    'Nisan': {
-      14: {en:'Erev Pesach', he:'ערב פסח'}, 15: {en:'Pesach', he:'פסח'}, 16: {en:'Pesach', he:'פסח'},
-      17: {en:'Chol HaMoed Pesach', he:'חול המועד פסח'}, 18: {en:'Chol HaMoed Pesach', he:'חול המועד פסח'},
-      19: {en:'Chol HaMoed Pesach', he:'חול המועד פסח'}, 20: {en:'Chol HaMoed Pesach', he:'חול המועד פסח'},
-      21: {en:'Pesach', he:'פסח'}, 22: {en:'Pesach', he:'פסח'},
-      27: {en:'Yom HaShoah', he:'יום השואה'}
-    },
-    'Iyar': { 5: {en:'Yom HaAtzmaut*', he:'יום העצמאות*'}, 18: {en:'Lag BaOmer', he:'ל״ג בעומר'}, 28: {en:'Yom Yerushalayim', he:'יום ירושלים'} },
-    'Sivan': { 6: {en:'Shavuot', he:'שבועות'}, 7: {en:'Shavuot', he:'שבועות'} },
-    'Tamuz': { 17: {en:"Tzom Tammuz (fast)", he:'צום תמוז'} },
-    'Av': { 9: {en:"Tisha B'Av (fast)", he:'תשעה באב'}, 15: {en:"Tu B'Av", he:'ט״ו באב'} }
-  };
+  // 54 weekly Torah portions, in reading order (Vezot HaBerakhah is read on
+  // Simchat Torah itself, never on a regular Shabbat, but is kept in the list
+  // for indexing purposes).
+  const PARSHA_EN = ['Bereshit','Noach','Lech Lecha','Vayera',"Chayei Sara",'Toldot','Vayetzei','Vayishlach',
+    'Vayeshev','Miketz','Vayigash','Vayechi','Shemot','Vaera','Bo','Beshalach','Yitro','Mishpatim','Terumah',
+    'Tetzaveh','Ki Tisa','Vayakhel','Pekudei','Vayikra','Tzav','Shmini','Tazria','Metzora','Achrei Mot',
+    'Kedoshim','Emor','Behar','Bechukotai','Bamidbar','Nasso',"Beha'alotcha","Sh'lach",'Korach','Chukat',
+    'Balak','Pinchas','Matot','Masei','Devarim',"Va'etchanan",'Eikev','Re\u2019eh','Shoftim','Ki Teitzei',
+    'Ki Tavo','Nitzavim','Vayelech',"Ha'azinu",'Vezot HaBerakhah'];
+  const PARSHA_HE = ['בראשית','נח','לך לך','וירא','חיי שרה','תולדות','ויצא','וישלח','וישב','מקץ','ויגש','ויחי',
+    'שמות','וארא','בא','בשלח','יתרו','משפטים','תרומה','תצוה','כי תשא','ויקהל','פקודי','ויקרא','צו','שמיני',
+    'תזריע','מצורע','אחרי מות','קדושים','אמור','בהר','בחוקותי','במדבר','נשא','בהעלותך','שלח','קרח','חוקת',
+    'בלק','פינחס','מטות','מסעי','דברים','ואתחנן','עקב','ראה','שופטים','כי תצא','כי תבוא','נצבים','וילך',
+    'האזינו','וזאת הברכה'];
 
-  // ---- Hebrew-date helpers ----
+  // ================= Hebrew-date helpers =================
   const hebFmtEnCache = new Intl.DateTimeFormat('en-u-ca-hebrew', { year:'numeric', month:'long', day:'numeric' });
   const hebFmtHeCache = new Intl.DateTimeFormat('he-u-ca-hebrew-nu-hebr', { year:'numeric', month:'long', day:'numeric' });
 
@@ -349,7 +337,7 @@
     const parts = hebFmtEnCache.formatToParts(date);
     const map = {};
     parts.forEach(p => map[p.type] = p.value);
-    return { day: parseInt(map.day,10), month: map.month, year: map.year };
+    return { day: parseInt(map.day,10), month: map.month, year: parseInt(map.year,10) };
   }
   function hebrewPartsDisplay(date, lang){
     const fmt = lang === 'he' ? hebFmtHeCache : hebFmtEnCache;
@@ -362,65 +350,230 @@
   function isoKey(date){
     return date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
   }
+  function addDays(date, n){ const d = new Date(date); d.setDate(d.getDate()+n); return d; }
+  function daysBetween(a,b){ return Math.round((b.getTime()-a.getTime())/86400000); }
 
-  function findAnchor(monthName, day, refDate, radius){
-    for (let o = -radius; o <= radius; o++){
-      const d = new Date(refDate);
-      d.setDate(d.getDate() + o);
+  function findNextHebrewDate(monthName, day, refDate, radius){
+    for (let o=1; o<=radius; o++){
+      const d = addDays(refDate, o);
+      const hp = hebrewPartsEn(d);
+      if (hp.month === monthName && hp.day === day) return d;
+    }
+    return null;
+  }
+  function findPriorHebrewDate(monthName, day, refDate, radius){
+    for (let o=1; o<=radius; o++){
+      const d = addDays(refDate, -o);
       const hp = hebrewPartsEn(d);
       if (hp.month === monthName && hp.day === day) return d;
     }
     return null;
   }
 
-  // ---- Live data from Hebcal (holidays + parashat hashavua) ----
-  const hebcalCache = new Map();
-  async function fetchHebcal(startDate, endDate, israel){
-    const start = isoKey(startDate);
-    const end = isoKey(endDate);
-    const cacheKey = start + '_' + end + '_' + (israel ? 'il' : 'diaspora');
-    if (hebcalCache.has(cacheKey)) return hebcalCache.get(cacheKey);
-    const url = 'https://www.hebcal.com/hebcal?cfg=json&start=' + start + '&end=' + end +
-      '&maj=on&min=on&mod=on&mf=on&s=on&c=off&i=' + (israel ? 'on' : 'off') + '&lg=s';
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Hebcal request failed');
-    const data = await res.json();
-    const byDate = {};
-    (data.items || []).forEach(item => {
-      const d = item.date ? item.date.slice(0,10) : null;
-      if (!d) return;
-      if (!byDate[d]) byDate[d] = { holidays: [], parsha: null };
-      if (item.category === 'parashat'){
-        byDate[d].parsha = { en: item.title.replace(/^Parashat\s+/,''), he: (item.hebrew||'').replace(/^פרשת\s+/,'') };
-      } else if (item.category === 'holiday' || item.category === 'roshchodesh'){
-        byDate[d].holidays.push({ en: item.title, he: item.hebrew || item.title });
+  // Anchor-based multi-day spans (robust to Kislev's variable length etc.)
+  function findAnchorNearby(monthName, day, refDate, radius){
+    for (let o=0; o<=radius; o++){
+      for (const sign of (o===0?[1]:[-1,1])){
+        const d = addDays(refDate, sign*o);
+        const hp = hebrewPartsEn(d);
+        if (hp.month === monthName && hp.day === day) return d;
       }
-    });
-    hebcalCache.set(cacheKey, byDate);
-    return byDate;
+    }
+    return null;
   }
 
-  // ---- Notes storage ----
+  // ================= Offline holiday lookup =================
+  function holidayFor(date, israel, lang){
+    const hp = hebrewPartsEn(date);
+    const m = hp.month, day = hp.day;
+    const L = (en, he) => lang === 'he' ? he : en;
+    if (m === 'Tishrei'){
+      if (day===1||day===2) return L('Rosh Hashanah','ראש השנה');
+      if (day===3) return L('Fast of Gedaliah','צום גדליה');
+      if (day===10) return L('Yom Kippur','יום כיפור');
+      if (day===15||day===16) return L('Sukkot','סוכות');
+      if (day>=17&&day<=20) return L('Chol HaMoed Sukkot','חול המועד סוכות');
+      if (day===21) return L('Hoshana Rabbah','הושענא רבה');
+      if (day===22) return israel ? L('Shemini Atzeret / Simchat Torah','שמיני עצרת ושמחת תורה') : L('Shemini Atzeret','שמיני עצרת');
+      if (day===23 && !israel) return L('Simchat Torah','שמחת תורה');
+    }
+    if (m === 'Tevet' && day===10) return L("Asara B'Tevet (fast)",'עשרה בטבת');
+    if (m === 'Shevat' && day===15) return L('Tu BiShvat','ט״ו בשבט');
+    if (m === 'Adar' || m === 'Adar II'){
+      if (day===13) return L("Ta'anit Esther (fast)",'תענית אסתר');
+      if (day===14) return L('Purim','פורים');
+      if (day===15) return L('Shushan Purim','שושן פורים');
+    }
+    if (m === 'Nisan'){
+      if (day===14) return L('Erev Pesach','ערב פסח');
+      if (day===15||day===16) return L('Pesach','פסח');
+      if (day>=17&&day<=20) return L('Chol HaMoed Pesach','חול המועד פסח');
+      if (day===21) return L('Pesach','פסח');
+      if (day===22 && !israel) return L('Pesach','פסח');
+      if (day===27) return L('Yom HaShoah','יום השואה');
+    }
+    if (m === 'Iyar'){
+      if (day===5) return L('Yom HaAtzmaut*','יום העצמאות*');
+      if (day===18) return L('Lag BaOmer','ל״ג בעומר');
+      if (day===28) return L('Yom Yerushalayim','יום ירושלים');
+    }
+    if (m === 'Sivan'){
+      if (day===6) return L('Shavuot','שבועות');
+      if (day===7 && !israel) return L('Shavuot','שבועות');
+    }
+    if (m === 'Tamuz' && day===17) return L('Tzom Tammuz (fast)','צום תמוז');
+    if (m === 'Av'){
+      if (day===9) return L("Tisha B'Av (fast)",'תשעה באב');
+      if (day===15) return L("Tu B'Av",'ט״ו באב');
+    }
+    return null;
+  }
+
+  // ================= Local parasha (Torah portion) engine =================
+  // Implements the standard deterministic algorithm for which portions are
+  // combined, based on: I. Bromberg, "Weekly Torah Portions and Special
+  // Sabbaths" (individual.utoronto.ca/kalendis/hebrew/parshah.htm).
+  function isOverriddenShabbat(d, israel){
+    const hp = hebrewPartsEn(d);
+    const m = hp.month, day = hp.day;
+    if (m === 'Tishrei'){
+      if (day===1||day===2) return true;
+      if (day===10) return true;
+      if (day>=15 && day<=22) return true;
+      if (!israel && day===23) return true;
+    }
+    if (m === 'Nisan'){
+      if (day>=15 && day<=21) return true;
+      if (!israel && day===22) return true;
+    }
+    if (m === 'Sivan'){
+      if (day===6) return true;
+      if (!israel && day===7) return true;
+    }
+    return false;
+  }
+
+  function cycleIsLeap(simchatTorahDate){
+    for (let o=90; o<=210; o++){
+      const d = addDays(simchatTorahDate, o);
+      const hp = hebrewPartsEn(d);
+      if (hp.month === 'Adar I') return true;
+      if (hp.month === 'Adar') return false;
+    }
+    return false;
+  }
+
+  function countSaturdaysInclusive(start, end){
+    let count = 0;
+    for (let d = new Date(start); d.getTime() <= end.getTime(); d = addDays(d,7)) count++;
+    return count;
+  }
+
+  const parshaCache = new Map();
+  function computeParsha(targetSaturday, israel){
+    if (targetSaturday.getDay() !== 6) return null;
+    const cacheKey = isoKey(targetSaturday) + '_' + (israel?'il':'d');
+    if (parshaCache.has(cacheKey)) return parshaCache.get(cacheKey);
+
+    const stDay = israel ? 22 : 23;
+    const simchatTorah = findPriorHebrewDate('Tishrei', stDay, targetSaturday, 400);
+    let result = null;
+
+    if (simchatTorah && !isOverriddenShabbat(targetSaturday, israel)){
+      let bereshitShabbat = addDays(simchatTorah, 1);
+      while (bereshitShabbat.getDay() !== 6) bereshitShabbat = addDays(bereshitShabbat, 1);
+
+      if (targetSaturday.getTime() === bereshitShabbat.getTime()){
+        result = { indices: [0] };
+      } else {
+        const weeksElapsed = Math.round(daysBetween(bereshitShabbat, targetSaturday) / 7);
+        const pnSimple = weeksElapsed + 1;
+        if (pnSimple >= 1 && pnSimple < 22){
+          result = { indices: [pnSimple - 1] };
+        } else {
+          const leap = cycleIsLeap(simchatTorah);
+          const pesach = findNextHebrewDate('Nisan', 15, simchatTorah, 260);
+          const tishaBav = findNextHebrewDate('Av', 9, simchatTorah, 340);
+          const nextRoshHashanah = findNextHebrewDate('Tishrei', 1, simchatTorah, 400);
+
+          let tempShabbat = addDays(bereshitShabbat, 20*7);
+          let pn = 21;
+          let lastCombined = false;
+
+          while (tempShabbat.getTime() < targetSaturday.getTime()){
+            tempShabbat = addDays(tempShabbat, 7);
+            if (isOverriddenShabbat(tempShabbat, israel)) continue;
+            pn += 1;
+            let combined = false;
+            if (pesach && tishaBav && nextRoshHashanah){
+              switch (pn){
+                case 22: {
+                  const upper = addDays(pesach, -1);
+                  combined = countSaturdaysInclusive(tempShabbat, upper) < 4;
+                  break;
+                }
+                case 27: combined = !leap; break;
+                case 29: combined = !leap; break;
+                case 32: {
+                  if (!israel) combined = !leap;
+                  else combined = (pesach.getDay() !== 6) && !leap;
+                  break;
+                }
+                case 39: {
+                  combined = !israel && pesach.getDay() === 4;
+                  break;
+                }
+                case 42: {
+                  combined = countSaturdaysInclusive(tempShabbat, tishaBav) < 3;
+                  break;
+                }
+                case 51: {
+                  combined = daysBetween(tempShabbat, nextRoshHashanah) > 3;
+                  break;
+                }
+              }
+            }
+            if (combined) pn += 1;
+            lastCombined = combined;
+          }
+
+          if (tempShabbat.getTime() === targetSaturday.getTime() && pn >= 1 && pn <= 54){
+            result = lastCombined ? { indices: [pn-2, pn-1] } : { indices: [pn-1] };
+          }
+        }
+      }
+    }
+    parshaCache.set(cacheKey, result);
+    return result;
+  }
+
+  // Chanukah + Omer: 8/49 consecutive civil days from a fixed Hebrew anchor,
+  // which sidesteps needing to know Kislev's variable month length.
+  function buildSpanMap(monthName, day, length, refDate){
+    const anchor = findAnchorNearby(monthName, day, refDate, 200);
+    const map = {};
+    if (anchor){
+      for (let i=0;i<length;i++) map[isoKey(addDays(anchor,i))] = i+1;
+    }
+    return map;
+  }
+
+  // ================= Notes storage =================
   const notesCache = {};
   async function loadNote(key){
     if (key in notesCache) return notesCache[key];
     try{
       const res = await window.storage.get('note:' + key);
       notesCache[key] = res ? res.value : '';
-    }catch(e){
-      notesCache[key] = '';
-    }
+    }catch(e){ notesCache[key] = ''; }
     return notesCache[key];
   }
   async function saveNoteFor(key, value){
     notesCache[key] = value;
     const S = STRINGS[lang];
     try{
-      if (value && value.trim().length){
-        await window.storage.set('note:' + key, value);
-      } else {
-        await window.storage.delete('note:' + key);
-      }
+      if (value && value.trim().length) await window.storage.set('note:' + key, value);
+      else await window.storage.delete('note:' + key);
       saveNote.textContent = S.saved;
       setTimeout(()=>{ saveNote.textContent=''; }, 1200);
     }catch(e){
@@ -429,14 +582,13 @@
     }
   }
 
-  // ---- State ----
+  // ================= State =================
   const today = new Date();
   today.setHours(0,0,0,0);
   let viewYear = today.getFullYear();
   let viewMonth = today.getMonth();
   let lang = 'en';
   let israel = false;
-  const locBtn = document.getElementById('locBtn');
 
   function applyStaticStrings(){
     const S = STRINGS[lang];
@@ -457,7 +609,7 @@
     });
   }
 
-  async function render(){
+  function render(){
     applyStaticStrings();
     grid.innerHTML = '';
 
@@ -465,50 +617,27 @@
     const lastOfMonth = new Date(viewYear, viewMonth+1, 0);
     const startDow = firstOfMonth.getDay();
     const totalDaysShown = Math.ceil((startDow + lastOfMonth.getDate()) / 7) * 7;
-    const gridStart = new Date(firstOfMonth);
-    gridStart.setDate(gridStart.getDate() - startDow);
-    const gridEnd = new Date(gridStart);
-    gridEnd.setDate(gridEnd.getDate() + totalDaysShown - 1);
+    const gridStart = addDays(firstOfMonth, -startDow);
 
-    // Titles
     civilTitle.textContent = (lang === 'he' ? MONTH_NAMES_HE[viewMonth] : MONTH_NAMES_EN[viewMonth]) + ' ' + viewYear;
     civilTitle.dir = lang === 'he' ? 'rtl' : 'ltr';
 
     const hStart = hebrewPartsDisplay(firstOfMonth, lang);
     const hEnd = hebrewPartsDisplay(lastOfMonth, lang);
-    const dash = lang === 'he' ? ' – ' : ' – ';
     if (hStart.month === hEnd.month && hStart.year === hEnd.year){
       hebrewTitle.textContent = hStart.month + ' ' + hStart.year;
     } else if (hStart.year === hEnd.year){
-      hebrewTitle.textContent = hStart.month + dash + hEnd.month + ' ' + hEnd.year;
+      hebrewTitle.textContent = hStart.month + ' \u2013 ' + hEnd.month + ' ' + hEnd.year;
     } else {
-      hebrewTitle.textContent = hStart.month + ' ' + hStart.year + dash + hEnd.month + ' ' + hEnd.year;
+      hebrewTitle.textContent = hStart.month + ' ' + hStart.year + ' \u2013 ' + hEnd.month + ' ' + hEnd.year;
     }
     hebrewTitle.dir = lang === 'he' ? 'rtl' : 'ltr';
 
-    // Offline anchors: Chanukah (Kislev 25, 8 days) and Omer (Nisan 16, 49 days)
-    const chanukahAnchor = findAnchor('Kislev', 25, firstOfMonth, 200);
-    const omerAnchor = findAnchor('Nisan', 16, firstOfMonth, 200);
-    const chanukahMap = {};
-    if (chanukahAnchor){
-      for (let i=0;i<8;i++){
-        const d = new Date(chanukahAnchor); d.setDate(d.getDate()+i);
-        chanukahMap[isoKey(d)] = i+1;
-      }
-    }
-    const omerMap = {};
-    if (omerAnchor){
-      for (let i=0;i<49;i++){
-        const d = new Date(omerAnchor); d.setDate(d.getDate()+i);
-        omerMap[isoKey(d)] = i+1;
-      }
-    }
+    const chanukahMap = buildSpanMap('Kislev', 25, 8, firstOfMonth);
+    const omerMap = buildSpanMap('Nisan', 16, 49, firstOfMonth);
 
-    // Build cells
-    const cellRefs = {};
     for (let i=0; i<totalDaysShown; i++){
-      const d = new Date(gridStart);
-      d.setDate(d.getDate() + i);
+      const d = addDays(gridStart, i);
       const key = isoKey(d);
       const isPad = d.getMonth() !== viewMonth;
       const isToday = d.getTime() === today.getTime();
@@ -528,7 +657,7 @@
       const hebrewNum = document.createElement('div');
       hebrewNum.className = 'hebrew-num';
       hebrewNum.dir = lang === 'he' ? 'rtl' : 'ltr';
-      hebrewNum.textContent = lang === 'he' ? (hp.day + ' ' + hp.month) : (hp.day + ' ' + hp.month);
+      hebrewNum.textContent = hp.day + ' ' + hp.month;
 
       head.appendChild(civilNum);
       head.appendChild(hebrewNum);
@@ -537,7 +666,6 @@
       const body = document.createElement('div');
       body.className = 'cell-body';
 
-      // Omer tag (offline, always available in-season)
       if (omerMap[key]){
         const om = document.createElement('div');
         om.className = 'omer-tag';
@@ -546,10 +674,34 @@
         body.appendChild(om);
       }
 
-      // Placeholder holders for holiday/parsha tags, filled in after Hebcal resolves (or from fallback)
-      const tagsHolder = document.createElement('div');
-      tagsHolder.className = 'tags-holder';
-      body.appendChild(tagsHolder);
+      if (chanukahMap[key]){
+        const tag = document.createElement('div');
+        tag.className = 'holiday-tag';
+        tag.dir = lang === 'he' ? 'rtl' : 'ltr';
+        tag.textContent = lang === 'he' ? ('חנוכה, נר ' + chanukahMap[key]) : ('Chanukah (day ' + chanukahMap[key] + ')');
+        body.appendChild(tag);
+      } else {
+        const hLabel = holidayFor(d, israel, lang);
+        if (hLabel){
+          const tag = document.createElement('div');
+          tag.className = 'holiday-tag';
+          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
+          tag.textContent = hLabel;
+          body.appendChild(tag);
+        }
+      }
+
+      if (isShabbat){
+        const p = computeParsha(d, israel);
+        if (p){
+          const names = p.indices.map(idx => lang === 'he' ? PARSHA_HE[idx] : PARSHA_EN[idx]);
+          const tag = document.createElement('div');
+          tag.className = 'parsha-tag';
+          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
+          tag.textContent = STRINGS[lang].parshatPrefix + names.join(lang === 'he' ? '\u2013' : '-');
+          body.appendChild(tag);
+        }
+      }
 
       const noteDisplay = document.createElement('div');
       noteDisplay.className = 'note-text';
@@ -580,59 +732,6 @@
       });
 
       grid.appendChild(cell);
-      cellRefs[key] = { tagsHolder, isShabbat, date: d };
-    }
-
-    // Fill holiday + parsha tags: prefer live Hebcal data, fall back to offline table
-    function renderTagsFromFallback(){
-      Object.keys(cellRefs).forEach(key => {
-        const { tagsHolder, date } = cellRefs[key];
-        tagsHolder.innerHTML = '';
-        const chanukahDay = chanukahMap[key];
-        if (chanukahDay){
-          const tag = document.createElement('div');
-          tag.className = 'holiday-tag';
-          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
-          tag.textContent = lang === 'he' ? ('חנוכה, נר ' + chanukahDay) : ('Chanukah (day ' + chanukahDay + ')');
-          tagsHolder.appendChild(tag);
-          return;
-        }
-        const hp = hebrewPartsEn(date);
-        const entry = HOLIDAYS_FALLBACK[hp.month] && HOLIDAYS_FALLBACK[hp.month][hp.day];
-        if (entry){
-          const tag = document.createElement('div');
-          tag.className = 'holiday-tag';
-          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
-          tag.textContent = lang === 'he' ? entry.he : entry.en;
-          tagsHolder.appendChild(tag);
-        }
-      });
-    }
-
-    try{
-      const events = await fetchHebcal(gridStart, gridEnd, israel);
-      Object.keys(cellRefs).forEach(key => {
-        const { tagsHolder } = cellRefs[key];
-        tagsHolder.innerHTML = '';
-        const info = events[key];
-        if (!info) return;
-        if (info.parsha){
-          const tag = document.createElement('div');
-          tag.className = 'parsha-tag';
-          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
-          tag.textContent = lang === 'he' ? ('פרשת ' + info.parsha.he) : ('Parashat ' + info.parsha.en);
-          tagsHolder.appendChild(tag);
-        }
-        info.holidays.forEach(h => {
-          const tag = document.createElement('div');
-          tag.className = 'holiday-tag';
-          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
-          tag.textContent = lang === 'he' ? h.he : h.en;
-          tagsHolder.appendChild(tag);
-        });
-      });
-    }catch(e){
-      renderTagsFromFallback();
     }
   }
 
@@ -651,14 +750,8 @@
     viewMonth = today.getMonth();
     render();
   });
-  langBtn.addEventListener('click', () => {
-    lang = lang === 'en' ? 'he' : 'en';
-    render();
-  });
-  locBtn.addEventListener('click', () => {
-    israel = !israel;
-    render();
-  });
+  langBtn.addEventListener('click', () => { lang = lang === 'en' ? 'he' : 'en'; render(); });
+  locBtn.addEventListener('click', () => { israel = !israel; render(); });
 
   render();
 })();
