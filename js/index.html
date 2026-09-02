@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Hebrew / Civil Calendar</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="titles">
+      <h1 class="civil-title" id="civilTitle"></h1>
+      <p class="hebrew-title" id="hebrewTitle"></p>
+    </div>
+    <nav>
+      <button class="lang-btn" id="locBtn">Israel</button>
+      <button class="lang-btn" id="langBtn">עברית</button>
+      <button class="lang-btn" id="dayViewBtn">Day View</button>
+      <span id="monthNav" class="month-nav">
+        <button class="nav-btn" id="prevBtn" aria-label="Previous month">&#8249;</button>
+        <button class="today-btn" id="todayBtn">Today</button>
+        <button class="nav-btn" id="nextBtn" aria-label="Next month">&#8250;</button>
+      </span>
+    </nav>
+  </header>
+
+  <div id="monthView">
+    <div class="weekdays" id="weekdays"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="day-view hidden" id="dayView">
+    <div class="day-view-top">
+      <button class="today-btn" id="backToMonthBtn">&#8249; Month View</button>
+    </div>
+    <div class="day-nav">
+      <button class="today-btn" id="dayPrevBtn"></button>
+      <button class="today-btn" id="dayNextBtn"></button>
+    </div>
+    <div class="day-tags" id="dayTags"></div>
+    <div class="day-section">
+      <h3 id="dayNoteLabel"></h3>
+      <textarea class="day-note-input" id="dayNoteInput"></textarea>
+    </div>
+    <div class="day-section">
+      <h3 id="dayZmanimLabel"></h3>
+      <p class="day-zmanim-placeholder" id="dayZmanimPlaceholder"></p>
+    </div>
+  </div>
+
+  <div id="legendWrap" class="legend">
+    <div><span class="dot civil-dot"></span><span id="legendCivil"></span></div>
+    <div><span class="dot hebrew-dot"></span><span id="legendHebrew"></span></div>
+    <div><span class="dot parsha-dot"></span><span id="legendParsha"></span></div>
+    <div><span class="dot holiday-dot"></span><span id="legendHoliday"></span></div>
+    <div class="save-note" id="saveNote"></div>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/hebrew-dates.js"></script>
+<script src="js/holidays.js"></script>
+<script src="js/parsha.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
