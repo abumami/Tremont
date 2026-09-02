@@ -25,6 +25,31 @@
   const dayNoteInput = document.getElementById('dayNoteInput');
   const dayZmanimLabel = document.getElementById('dayZmanimLabel');
   const dayZmanimPlaceholder = document.getElementById('dayZmanimPlaceholder');
+  const zmanimLocationLabel = document.getElementById('zmanimLocationLabel');
+  const editLocationBtn = document.getElementById('editLocationBtn');
+  const zmanimSettingsForm = document.getElementById('zmanimSettingsForm');
+  const useMyLocationBtn = document.getElementById('useMyLocationBtn');
+  const zmanimLatInput = document.getElementById('zmanimLatInput');
+  const zmanimLonInput = document.getElementById('zmanimLonInput');
+  const zmanimAlotInput = document.getElementById('zmanimAlotInput');
+  const zmanimTzeitInput = document.getElementById('zmanimTzeitInput');
+  const zmanimCandleInput = document.getElementById('zmanimCandleInput');
+  const zmanimSaveBtn = document.getElementById('zmanimSaveBtn');
+  const zmanimCancelBtn = document.getElementById('zmanimCancelBtn');
+  const zmanimStatus = document.getElementById('zmanimStatus');
+  const zmanimList = document.getElementById('zmanimList');
+  const zmanimDisclaimerEl = document.getElementById('zmanimDisclaimer');
+  const latLabel = document.getElementById('latLabel');
+  const lonLabel = document.getElementById('lonLabel');
+  const alotLabel = document.getElementById('alotLabel');
+  const tzeitLabel = document.getElementById('tzeitLabel');
+  const candleLabel = document.getElementById('candleLabel');
+
+  let zmanimSettings = Object.assign({}, DEFAULT_ZMANIM_SETTINGS);
+  loadZmanimSettings().then(s => {
+    zmanimSettings = s;
+    if (currentView === 'day') renderDayView();
+  });
 
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -49,6 +74,16 @@
     dayNoteLabel.textContent = S.dayNotesHeading;
     dayZmanimLabel.textContent = S.zmanimHeading;
     dayZmanimPlaceholder.textContent = S.zmanimPlaceholder;
+    editLocationBtn.textContent = S.editLocation;
+    useMyLocationBtn.textContent = S.useMyLocation;
+    latLabel.textContent = S.latitude;
+    lonLabel.textContent = S.longitude;
+    alotLabel.textContent = S.alotOffset;
+    tzeitLabel.textContent = S.tzeitOffset;
+    candleLabel.textContent = S.candleOffset;
+    zmanimSaveBtn.textContent = S.saveLocation;
+    zmanimCancelBtn.textContent = S.cancel;
+    zmanimDisclaimerEl.textContent = S.zmanimDisclaimer;
     dayNoteInput.placeholder = S.addNote;
     document.getElementById('legendCivil').textContent = S.legendCivil;
     document.getElementById('legendHebrew').textContent = S.legendHebrew;
@@ -209,7 +244,113 @@
     currentDayKey = isoKey(d);
     dayNoteInput.value = '';
     loadNote(currentDayKey).then(val => { dayNoteInput.value = val || ''; });
+
+    renderZmanimSection(d);
   }
+
+  function hasLocation(){
+    return typeof zmanimSettings.lat === 'number' && typeof zmanimSettings.lon === 'number';
+  }
+
+  function renderZmanimLocationLabel(){
+    const S = STRINGS[lang];
+    zmanimLocationLabel.textContent = hasLocation()
+      ? S.locationSetTo(zmanimSettings.lat.toFixed(3), zmanimSettings.lon.toFixed(3))
+      : S.locationNotSet;
+  }
+
+  function renderZmanimSection(d){
+    const S = STRINGS[lang];
+    renderZmanimLocationLabel();
+    zmanimList.innerHTML = '';
+
+    if (!hasLocation()){
+      dayZmanimPlaceholder.classList.remove('hidden');
+      dayZmanimPlaceholder.textContent = S.zmanimPlaceholder;
+      return;
+    }
+
+    const result = computeZmanim(d, israel, zmanimSettings);
+    if (result.polar){
+      dayZmanimPlaceholder.classList.remove('hidden');
+      dayZmanimPlaceholder.textContent = S.zmanimPolar;
+      return;
+    }
+    dayZmanimPlaceholder.classList.add('hidden');
+
+    result.list.forEach(z => {
+      const row = document.createElement('div');
+      const isSpecial = (z.key === 'candleLighting' || z.key === 'havdalah');
+      row.className = 'zman-row' + (isSpecial ? ' zman-special' : '');
+      row.dir = lang === 'he' ? 'rtl' : 'ltr';
+
+      const label = document.createElement('span');
+      label.className = 'zman-label';
+      label.textContent = ZMANIM_LABELS[z.key][lang];
+
+      const time = document.createElement('span');
+      time.className = 'zman-time';
+      time.textContent = formatTime(z.time, lang);
+
+      row.appendChild(label);
+      row.appendChild(time);
+      zmanimList.appendChild(row);
+    });
+  }
+
+  function openLocationForm(){
+    zmanimLatInput.value = zmanimSettings.lat !== null ? zmanimSettings.lat : '';
+    zmanimLonInput.value = zmanimSettings.lon !== null ? zmanimSettings.lon : '';
+    zmanimAlotInput.value = zmanimSettings.alotMin;
+    zmanimTzeitInput.value = zmanimSettings.tzeitMin;
+    zmanimCandleInput.value = zmanimSettings.candleMin;
+    zmanimStatus.textContent = '';
+    zmanimSettingsForm.classList.remove('hidden');
+  }
+  function closeLocationForm(){
+    zmanimSettingsForm.classList.add('hidden');
+  }
+
+  editLocationBtn.addEventListener('click', () => {
+    if (zmanimSettingsForm.classList.contains('hidden')) openLocationForm();
+    else closeLocationForm();
+  });
+  zmanimCancelBtn.addEventListener('click', closeLocationForm);
+
+  useMyLocationBtn.addEventListener('click', () => {
+    const S = STRINGS[lang];
+    if (!navigator.geolocation){
+      zmanimStatus.textContent = S.geoUnsupported;
+      return;
+    }
+    zmanimStatus.textContent = '...';
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        zmanimLatInput.value = pos.coords.latitude.toFixed(4);
+        zmanimLonInput.value = pos.coords.longitude.toFixed(4);
+        zmanimStatus.textContent = '';
+      },
+      () => { zmanimStatus.textContent = S.geoError; }
+    );
+  });
+
+  zmanimSaveBtn.addEventListener('click', () => {
+    const lat = parseFloat(zmanimLatInput.value);
+    const lon = parseFloat(zmanimLonInput.value);
+    const alotMin = parseFloat(zmanimAlotInput.value);
+    const tzeitMin = parseFloat(zmanimTzeitInput.value);
+    const candleMin = parseFloat(zmanimCandleInput.value);
+    if (isNaN(lat) || isNaN(lon)) return;
+    zmanimSettings = {
+      lat, lon,
+      alotMin: isNaN(alotMin) ? DEFAULT_ZMANIM_SETTINGS.alotMin : alotMin,
+      tzeitMin: isNaN(tzeitMin) ? DEFAULT_ZMANIM_SETTINGS.tzeitMin : tzeitMin,
+      candleMin: isNaN(candleMin) ? DEFAULT_ZMANIM_SETTINGS.candleMin : candleMin
+    };
+    saveZmanimSettings(zmanimSettings);
+    closeLocationForm();
+    renderZmanimSection(selectedDate);
+  });
 
   function showMonthView(){
     currentView = 'month';

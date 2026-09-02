@@ -17,7 +17,18 @@ const STRINGS = {
     dayViewBtn: 'Day View', backToMonth: '\u2039 Month View',
     prevDay: '\u2039 Prev Day', nextDay: 'Next Day \u203a',
     dayNotesHeading: 'Notes', zmanimHeading: 'Halachic times',
-    zmanimPlaceholder: 'Halachic times for this day will appear here once location-based calculation is added.'
+    zmanimPlaceholder: 'Set a location to see halachic times for this day.',
+    zmanimPolar: 'The sun does not rise or set here on this date — halachic times can\u2019t be calculated.',
+    zmanimDisclaimer: 'Calculated locally from sunrise/sunset for your location, shown in your device\u2019s local time zone (make sure it matches your location). Common conventions (Gra-based); consult your rav/local luach for practical use.',
+    useMyLocation: 'Use My Location', editLocation: 'Location Settings',
+    locationNotSet: 'No location set',
+    locationSetTo: (lat,lon) => 'Location: ' + lat + ', ' + lon,
+    latitude: 'Latitude', longitude: 'Longitude',
+    alotOffset: 'Alot (min before sunrise)', tzeitOffset: 'Tzeit (min after sunset)',
+    candleOffset: 'Candle lighting (min before sunset)',
+    saveLocation: 'Save', cancel: 'Cancel',
+    geoError: 'Could not get your location. Enter it manually below.',
+    geoUnsupported: 'Geolocation isn\u2019t available in this browser. Enter your location manually.'
   },
   he: {
     today: 'היום', langToggle: 'English',
@@ -31,8 +42,35 @@ const STRINGS = {
     dayViewBtn: 'תצוגת יום', backToMonth: '\u2039 תצוגת חודש',
     prevDay: '\u2039 יום קודם', nextDay: 'יום הבא \u203a',
     dayNotesHeading: 'הערות', zmanimHeading: 'זמנים הלכתיים',
-    zmanimPlaceholder: 'זמנים הלכתיים ליום זה יופיעו כאן לאחר הוספת חישוב לפי מיקום.'
+    zmanimPlaceholder: 'הגדר/י מיקום כדי לראות זמנים הלכתיים ליום זה.',
+    zmanimPolar: 'השמש אינה זורחת/שוקעת כאן בתאריך זה — לא ניתן לחשב זמנים הלכתיים.',
+    zmanimDisclaimer: 'מחושב באופן מקומי משעות הזריחה/שקיעה במיקום שלך, ומוצג באזור הזמן המוגדר במכשירך (יש לוודא שהוא תואם למיקום). לפי שיטת הגר״א. יש להתייעץ עם רב או לוח מקומי לשימוש הלכה למעשה.',
+    useMyLocation: 'השתמש/י במיקום שלי', editLocation: 'הגדרות מיקום',
+    locationNotSet: 'לא הוגדר מיקום',
+    locationSetTo: (lat,lon) => 'מיקום: ' + lat + ', ' + lon,
+    latitude: 'קו רוחב', longitude: 'קו אורך',
+    alotOffset: 'עלות (דקות לפני הזריחה)', tzeitOffset: 'צאת הכוכבים (דקות אחרי השקיעה)',
+    candleOffset: 'הדלקת נרות (דקות לפני השקיעה)',
+    saveLocation: 'שמור', cancel: 'ביטול',
+    geoError: 'לא ניתן לאתר את מיקומך. הזן/י אותו ידנית למטה.',
+    geoUnsupported: 'איתור מיקום אינו זמין בדפדפן זה. הזן/י את המיקום ידנית.'
   }
+};
+
+// Labels for each zman key computed in zmanim.js.
+const ZMANIM_LABELS = {
+  alotHaShachar: { en: 'Alot HaShachar (Dawn)', he: 'עלות השחר' },
+  netzHaChamah: { en: 'Netz HaChamah (Sunrise)', he: 'נץ החמה' },
+  sofZmanShema: { en: "Sof Zman Shema (Gra)", he: 'סוף זמן קריאת שמע (גר״א)' },
+  sofZmanTefillah: { en: 'Sof Zman Tefillah (Gra)', he: 'סוף זמן תפילה (גר״א)' },
+  chatzot: { en: 'Chatzot (Midday)', he: 'חצות היום' },
+  minchaGedolah: { en: 'Mincha Gedolah', he: 'מנחה גדולה' },
+  minchaKetanah: { en: 'Mincha Ketanah', he: 'מנחה קטנה' },
+  plagHaMincha: { en: 'Plag HaMincha', he: 'פלג המנחה' },
+  shkiah: { en: 'Shkiah (Sunset)', he: 'שקיעה' },
+  tzeitHaKochavim: { en: 'Tzeit HaKochavim (Nightfall)', he: 'צאת הכוכבים' },
+  candleLighting: { en: 'Candle Lighting', he: 'הדלקת נרות' },
+  havdalah: { en: 'Havdalah', he: 'הבדלה' }
 };
 
 // 54 weekly Torah portions, in reading order (Vezot HaBerakhah is read on
