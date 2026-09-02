@@ -406,9 +406,13 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 
 #zmanimList{
   display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-flow: column;
   gap: 4px 16px;
   margin-bottom: 10px;
+}
+@media (max-width: 480px){
+  #zmanimList{ grid-template-columns: 1fr; grid-auto-flow: row; }
 }
 .zman-row{
   display:flex;

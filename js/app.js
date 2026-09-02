@@ -277,6 +277,7 @@
       return;
     }
     dayZmanimPlaceholder.classList.add('hidden');
+    zmanimList.style.gridTemplateRows = 'repeat(' + Math.ceil(result.list.length / 2) + ', auto)';
 
     result.list.forEach(z => {
       const row = document.createElement('div');
