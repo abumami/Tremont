@@ -16,6 +16,7 @@
   const dayView = document.getElementById('dayView');
   const backToMonthBtn = document.getElementById('backToMonthBtn');
   const dayPrevBtn = document.getElementById('dayPrevBtn');
+  const dayTodayBtn = document.getElementById('dayTodayBtn');
   const dayNextBtn = document.getElementById('dayNextBtn');
   // (dayCivil/dayHebrew were removed — the day view now reuses the shared
   // civilTitle/hebrewTitle header elements instead of duplicating them.)
@@ -43,6 +44,7 @@
     dayViewBtn.textContent = S.dayViewBtn;
     backToMonthBtn.textContent = S.backToMonth;
     dayPrevBtn.textContent = S.prevDay;
+    dayTodayBtn.textContent = S.today;
     dayNextBtn.textContent = S.nextDay;
     dayNoteLabel.textContent = S.dayNotesHeading;
     dayZmanimLabel.textContent = S.zmanimHeading;
@@ -253,6 +255,7 @@
   dayViewBtn.addEventListener('click', showDayView);
   backToMonthBtn.addEventListener('click', showMonthView);
   dayPrevBtn.addEventListener('click', () => { selectedDate = addDays(selectedDate, -1); renderDayView(); });
+  dayTodayBtn.addEventListener('click', () => { selectedDate = new Date(today); renderDayView(); });
   dayNextBtn.addEventListener('click', () => { selectedDate = addDays(selectedDate, 1); renderDayView(); });
   dayNoteInput.addEventListener('blur', () => {
     if (currentDayKey) saveNoteFor(currentDayKey, dayNoteInput.value, lang, saveNote);

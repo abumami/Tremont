@@ -41,7 +41,7 @@ header{
   justify-content:space-between;
   flex-wrap: wrap;
   gap: 10px 12px;
-  margin-bottom: clamp(10px, 2vw, 16px);
+  margin-bottom: clamp(6px, 1.2vw, 10px);
   border-bottom: 1px solid var(--rule-strong);
   padding-bottom: 10px;
 }
@@ -272,7 +272,7 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 .hidden{ display: none !important; }
 
 /* ---- Day view ---- */
-.day-view-top{ display:flex; margin-bottom: 4px; }
+.day-view-top{ display:flex; margin-bottom: 0; }
 
 .day-nav{
   display:flex;
