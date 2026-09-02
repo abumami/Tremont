@@ -11,6 +11,8 @@
   const locBtn = document.getElementById('locBtn');
   const monthNav = document.getElementById('monthNav');
   const legendWrap = document.getElementById('legendWrap');
+  legendWrap.classList.add('hidden');
+
 
   const dayViewBtn = document.getElementById('dayViewBtn');
   const dayView = document.getElementById('dayView');
@@ -357,7 +359,7 @@
     currentView = 'month';
     dayView.classList.add('hidden');
     monthView.classList.remove('hidden');
-    legendWrap.classList.remove('hidden');
+//    legendWrap.classList.remove('hidden');
     monthNav.classList.remove('hidden');
     render();
   }
@@ -365,7 +367,7 @@
   function showDayView(){
     currentView = 'day';
     monthView.classList.add('hidden');
-    legendWrap.classList.add('hidden');
+//    legendWrap.classList.add('hidden');
     monthNav.classList.add('hidden');
     dayView.classList.remove('hidden');
     renderDayView();
