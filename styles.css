@@ -41,9 +41,9 @@ header{
   justify-content:space-between;
   flex-wrap: wrap;
   gap: 10px 12px;
-  margin-bottom: clamp(14px, 3vw, 22px);
+  margin-bottom: clamp(10px, 2vw, 16px);
   border-bottom: 1px solid var(--rule-strong);
-  padding-bottom: 14px;
+  padding-bottom: 10px;
 }
 
 .titles{ line-height:1.15; }
@@ -81,13 +81,22 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 .today-btn, .lang-btn{
   border: 1px solid var(--rule-strong);
   background: var(--paper-cell);
-  padding: 0 12px; height: 36px;
+  padding: 8px 12px;
   border-radius: 3px;
   font-size: 12.5px;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   color: var(--ink-soft);
   font-family: 'Source Serif 4', serif;
+  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
+}
+.month-nav{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 .today-btn:hover, .lang-btn:hover{ color: var(--civil); border-color: var(--civil); }
 .lang-btn{ color: var(--hebrew); border-color: var(--hebrew-soft); }
@@ -109,7 +118,7 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 .grid{
   display:grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-auto-rows: minmax(72px, auto);
+  grid-auto-rows: minmax(88px, auto);
   gap: 1px;
   background: var(--rule);
   border: 1px solid var(--rule);
@@ -122,7 +131,7 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
   display:flex;
   flex-direction:column;
   cursor: pointer;
-  min-height: 90px;
+  min-height: 88px;
   min-width: 0;
   -webkit-tap-highlight-color: transparent;
 }
@@ -260,14 +269,79 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 .save-note{ font-size: 11px; color: var(--ink-soft); }
 
 [dir="rtl"]{ direction: rtl; }
+.hidden{ display: none !important; }
+
+/* ---- Day view ---- */
+.day-view-top{ display:flex; margin-bottom: 4px; }
+
+.day-nav{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.day-tags{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.day-tags .holiday-tag, .day-tags .parsha-tag, .day-tags .omer-tag{
+  font-size: 13px;
+  padding: 4px 10px;
+  white-space: normal;
+}
+
+.day-section{
+  max-width: 520px;
+  margin: 0 auto 10px;
+}
+.day-section h3{
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.day-note-input{
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-cell);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: 'Source Serif 4', serif;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.day-note-input:focus{ outline: 1px solid var(--civil-soft); }
+
+.day-zmanim-placeholder{
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-soft);
+  border: 1px dashed var(--rule-strong);
+  border-radius: 4px;
+  padding: 14px;
+  margin: 0;
+  text-align: center;
+}
 
 /* ---- Mobile breakpoints ---- */
 @media (max-width: 640px){
   header{ gap: 8px 10px; }
   .titles{ order: 1; width: 100%; }
   nav{ order: 2; width: 100%; justify-content: space-between; }
-  .grid{ grid-auto-rows: minmax(64px, auto); }
-  .cell{ min-height: 64px; padding: 3px 3px 5px; }
+  .grid{ grid-auto-rows: minmax(78px, auto); }
+  .cell{ min-height: 78px; padding: 3px 3px 5px; }
   .legend{ font-size: 10.5px; gap: 10px 16px; }
   .legend > div:not(:last-child){ flex: 1 1 42%; }
 }
@@ -275,8 +349,8 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 @media (max-width: 420px){
   .cell-body{ gap: 1px; }
   .hebrew-num{ max-width: 58%; }
-  .grid{ grid-auto-rows: minmax(58px, auto); }
-  .cell{ min-height: 58px; }
+  .grid{ grid-auto-rows: minmax(68px, auto); }
+  .cell{ min-height: 68px; }
   /* On very narrow phones, keep only the most important tag per day to avoid clipping */
   .cell-body .omer-tag{ display: none; }
 }

@@ -1,6 +1,7 @@
 // ================= App: state, rendering, event wiring =================
 (function(){
   const grid = document.getElementById('grid');
+  const monthView = document.getElementById('monthView');
   const civilTitle = document.getElementById('civilTitle');
   const hebrewTitle = document.getElementById('hebrewTitle');
   const saveNote = document.getElementById('saveNote');
@@ -8,6 +9,21 @@
   const langBtn = document.getElementById('langBtn');
   const todayBtn = document.getElementById('todayBtn');
   const locBtn = document.getElementById('locBtn');
+  const monthNav = document.getElementById('monthNav');
+  const legendWrap = document.getElementById('legendWrap');
+
+  const dayViewBtn = document.getElementById('dayViewBtn');
+  const dayView = document.getElementById('dayView');
+  const backToMonthBtn = document.getElementById('backToMonthBtn');
+  const dayPrevBtn = document.getElementById('dayPrevBtn');
+  const dayNextBtn = document.getElementById('dayNextBtn');
+  // (dayCivil/dayHebrew were removed — the day view now reuses the shared
+  // civilTitle/hebrewTitle header elements instead of duplicating them.)
+  const dayTags = document.getElementById('dayTags');
+  const dayNoteLabel = document.getElementById('dayNoteLabel');
+  const dayNoteInput = document.getElementById('dayNoteInput');
+  const dayZmanimLabel = document.getElementById('dayZmanimLabel');
+  const dayZmanimPlaceholder = document.getElementById('dayZmanimPlaceholder');
 
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -15,12 +31,23 @@
   let viewMonth = today.getMonth();
   let lang = 'en';
   let israel = false;
+  let currentView = 'month';
+  let selectedDate = new Date(today);
+  let currentDayKey = null;
 
   function applyStaticStrings(){
     const S = STRINGS[lang];
     todayBtn.textContent = S.today;
     langBtn.textContent = S.langToggle;
     locBtn.textContent = israel ? S.locDiaspora : S.locIsrael;
+    dayViewBtn.textContent = S.dayViewBtn;
+    backToMonthBtn.textContent = S.backToMonth;
+    dayPrevBtn.textContent = S.prevDay;
+    dayNextBtn.textContent = S.nextDay;
+    dayNoteLabel.textContent = S.dayNotesHeading;
+    dayZmanimLabel.textContent = S.zmanimHeading;
+    dayZmanimPlaceholder.textContent = S.zmanimPlaceholder;
+    dayNoteInput.placeholder = S.addNote;
     document.getElementById('legendCivil').textContent = S.legendCivil;
     document.getElementById('legendHebrew').textContent = S.legendHebrew;
     document.getElementById('legendParsha').textContent = S.legendParsha;
@@ -32,6 +59,41 @@
       const div = document.createElement('div');
       div.textContent = n;
       weekdaysEl.appendChild(div);
+    });
+  }
+
+  // Builds the holiday/parsha/omer tags for a single day. chanukahMap and
+  // omerMap are precomputed span-maps (see hebrew-dates.js) so callers that
+  // loop over many days only pay the anchor-search cost once.
+  function tagsForDay(d, chanukahMap, omerMap){
+    const key = isoKey(d);
+    const tags = [];
+    if (omerMap[key]){
+      tags.push({ cls: 'omer-tag', text: STRINGS[lang].omer(omerMap[key]) });
+    }
+    if (chanukahMap[key]){
+      tags.push({ cls: 'holiday-tag', text: lang === 'he' ? ('חנוכה, נר ' + chanukahMap[key]) : ('Chanukah (day ' + chanukahMap[key] + ')') });
+    } else {
+      const hLabel = holidayFor(d, israel, lang);
+      if (hLabel) tags.push({ cls: 'holiday-tag', text: hLabel });
+    }
+    if (d.getDay() === 6){
+      const p = computeParsha(d, israel);
+      if (p){
+        const names = p.indices.map(idx => lang === 'he' ? PARSHA_HE[idx] : PARSHA_EN[idx]);
+        tags.push({ cls: 'parsha-tag', text: STRINGS[lang].parshatPrefix + names.join(lang === 'he' ? '\u2013' : '-') });
+      }
+    }
+    return tags;
+  }
+
+  function appendTags(container, tagList){
+    tagList.forEach(t => {
+      const el = document.createElement('div');
+      el.className = t.cls;
+      el.dir = lang === 'he' ? 'rtl' : 'ltr';
+      el.textContent = t.text;
+      container.appendChild(el);
     });
   }
 
@@ -91,43 +153,7 @@
 
       const body = document.createElement('div');
       body.className = 'cell-body';
-
-      if (omerMap[key]){
-        const om = document.createElement('div');
-        om.className = 'omer-tag';
-        om.dir = lang === 'he' ? 'rtl' : 'ltr';
-        om.textContent = STRINGS[lang].omer(omerMap[key]);
-        body.appendChild(om);
-      }
-
-      if (chanukahMap[key]){
-        const tag = document.createElement('div');
-        tag.className = 'holiday-tag';
-        tag.dir = lang === 'he' ? 'rtl' : 'ltr';
-        tag.textContent = lang === 'he' ? ('חנוכה, נר ' + chanukahMap[key]) : ('Chanukah (day ' + chanukahMap[key] + ')');
-        body.appendChild(tag);
-      } else {
-        const hLabel = holidayFor(d, israel, lang);
-        if (hLabel){
-          const tag = document.createElement('div');
-          tag.className = 'holiday-tag';
-          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
-          tag.textContent = hLabel;
-          body.appendChild(tag);
-        }
-      }
-
-      if (isShabbat){
-        const p = computeParsha(d, israel);
-        if (p){
-          const names = p.indices.map(idx => lang === 'he' ? PARSHA_HE[idx] : PARSHA_EN[idx]);
-          const tag = document.createElement('div');
-          tag.className = 'parsha-tag';
-          tag.dir = lang === 'he' ? 'rtl' : 'ltr';
-          tag.textContent = STRINGS[lang].parshatPrefix + names.join(lang === 'he' ? '\u2013' : '-');
-          body.appendChild(tag);
-        }
-      }
+      appendTags(body, tagsForDay(d, chanukahMap, omerMap));
 
       const noteDisplay = document.createElement('div');
       noteDisplay.className = 'note-text';
@@ -137,6 +163,7 @@
       cell.appendChild(body);
 
       cell.addEventListener('click', () => {
+        selectedDate = new Date(d);
         if (cell.querySelector('textarea')) return;
         const textarea = document.createElement('textarea');
         textarea.className = 'note-input';
@@ -161,6 +188,50 @@
     }
   }
 
+  function renderDayView(){
+    applyStaticStrings();
+    const d = selectedDate;
+
+    civilTitle.textContent = (lang === 'he' ? MONTH_NAMES_HE[d.getMonth()] : MONTH_NAMES_EN[d.getMonth()]) + ' ' + d.getDate() + ', ' + d.getFullYear();
+    civilTitle.dir = lang === 'he' ? 'rtl' : 'ltr';
+
+    const hp = hebrewPartsDisplay(d, lang);
+    hebrewTitle.textContent = hp.day + ' ' + hp.month + ' ' + hp.year;
+    hebrewTitle.dir = lang === 'he' ? 'rtl' : 'ltr';
+
+    const chanukahMap = buildSpanMap('Kislev', 25, 8, d);
+    const omerMap = buildSpanMap('Nisan', 16, 49, d);
+    dayTags.innerHTML = '';
+    appendTags(dayTags, tagsForDay(d, chanukahMap, omerMap));
+
+    currentDayKey = isoKey(d);
+    dayNoteInput.value = '';
+    loadNote(currentDayKey).then(val => { dayNoteInput.value = val || ''; });
+  }
+
+  function showMonthView(){
+    currentView = 'month';
+    dayView.classList.add('hidden');
+    monthView.classList.remove('hidden');
+    legendWrap.classList.remove('hidden');
+    monthNav.classList.remove('hidden');
+    render();
+  }
+
+  function showDayView(){
+    currentView = 'day';
+    monthView.classList.add('hidden');
+    legendWrap.classList.add('hidden');
+    monthNav.classList.add('hidden');
+    dayView.classList.remove('hidden');
+    renderDayView();
+  }
+
+  function renderCurrent(){
+    if (currentView === 'day') renderDayView();
+    else render();
+  }
+
   document.getElementById('prevBtn').addEventListener('click', () => {
     viewMonth -= 1;
     if (viewMonth < 0){ viewMonth = 11; viewYear -= 1; }
@@ -176,8 +247,16 @@
     viewMonth = today.getMonth();
     render();
   });
-  langBtn.addEventListener('click', () => { lang = lang === 'en' ? 'he' : 'en'; render(); });
-  locBtn.addEventListener('click', () => { israel = !israel; render(); });
+  langBtn.addEventListener('click', () => { lang = lang === 'en' ? 'he' : 'en'; renderCurrent(); });
+  locBtn.addEventListener('click', () => { israel = !israel; renderCurrent(); });
+
+  dayViewBtn.addEventListener('click', showDayView);
+  backToMonthBtn.addEventListener('click', showMonthView);
+  dayPrevBtn.addEventListener('click', () => { selectedDate = addDays(selectedDate, -1); renderDayView(); });
+  dayNextBtn.addEventListener('click', () => { selectedDate = addDays(selectedDate, 1); renderDayView(); });
+  dayNoteInput.addEventListener('blur', () => {
+    if (currentDayKey) saveNoteFor(currentDayKey, dayNoteInput.value, lang, saveNote);
+  });
 
   render();
 })();

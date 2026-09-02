@@ -13,7 +13,11 @@ const STRINGS = {
     legendHoliday: 'Holiday (approximate — verify for observance)',
     omer: (n) => 'Omer, day ' + n,
     locDiaspora: 'Diaspora', locIsrael: 'Israel',
-    parshatPrefix: 'Parashat '
+    parshatPrefix: 'Parashat ',
+    dayViewBtn: 'Day View', backToMonth: '\u2039 Month View',
+    prevDay: '\u2039 Prev Day', nextDay: 'Next Day \u203a',
+    dayNotesHeading: 'Notes', zmanimHeading: 'Halachic times',
+    zmanimPlaceholder: 'Halachic times for this day will appear here once location-based calculation is added.'
   },
   he: {
     today: 'היום', langToggle: 'English',
@@ -23,7 +27,11 @@ const STRINGS = {
     legendHoliday: 'חג (יש לוודא זמנים/תאריכים מדויקים)',
     omer: (n) => 'העומר, יום ' + n,
     locDiaspora: 'תפוצות', locIsrael: 'ישראל',
-    parshatPrefix: 'פרשת '
+    parshatPrefix: 'פרשת ',
+    dayViewBtn: 'תצוגת יום', backToMonth: '\u2039 תצוגת חודש',
+    prevDay: '\u2039 יום קודם', nextDay: 'יום הבא \u203a',
+    dayNotesHeading: 'הערות', zmanimHeading: 'זמנים הלכתיים',
+    zmanimPlaceholder: 'זמנים הלכתיים ליום זה יופיעו כאן לאחר הוספת חישוב לפי מיקום.'
   }
 };
 
