@@ -122,11 +122,16 @@ function computeZmanim(date, israel, settings){
   return { polar: false, list };
 }
 
-function formatTime(date, lang){
-  return date.toLocaleTimeString(lang === 'he' ? 'he-IL' : 'en-US', { hour: 'numeric', minute: '2-digit' });
+function formatTime(date, lang, timezone){
+  const opts = { hour: 'numeric', minute: '2-digit' };
+  if (timezone) opts.timeZone = timezone;
+  return date.toLocaleTimeString(lang === 'he' ? 'he-IL' : 'en-US', opts);
 }
 
-const DEFAULT_ZMANIM_SETTINGS = { lat: null, lon: null, label: '', alotMin: 72, tzeitMin: 42, candleMin: 18 };
+const DEFAULT_ZMANIM_SETTINGS = {
+  lat: null, lon: null, timezone: null, label: '', labelSource: null,
+  alotMin: 72, tzeitMin: 42, candleMin: 18
+};
 
 async function loadZmanimSettings(){
   try{

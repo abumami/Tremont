@@ -2,7 +2,7 @@
 (function(){
   // --- Internal config (not exposed as a UI control) ---
   // Set to false to hide the color-key legend under the month grid entirely.
-  const SHOW_LEGEND = false;
+  const SHOW_LEGEND = true;
 
   const grid = document.getElementById('grid');
   const monthView = document.getElementById('monthView');
@@ -51,9 +51,21 @@
   const candleLabel = document.getElementById('candleLabel');
 
   let zmanimSettings = Object.assign({}, DEFAULT_ZMANIM_SETTINGS);
+  let locationIsLiveGPS = false;
   loadZmanimSettings().then(s => {
     zmanimSettings = s;
     if (currentView === 'day') renderDayView();
+    // Backfill: a location saved before timezone lookup existed won't have
+    // one yet. Resolve it once in the background, best-effort, no UI needed.
+    if (hasLocation() && !zmanimSettings.timezone){
+      lookupTimezone(zmanimSettings.lat, zmanimSettings.lon).then(tz => {
+        if (tz){
+          zmanimSettings.timezone = tz;
+          saveZmanimSettings(zmanimSettings);
+          if (currentView === 'day') renderDayView();
+        }
+      });
+    }
   });
 
   legendItems.style.display = SHOW_LEGEND ? 'contents' : 'none';
@@ -261,9 +273,14 @@
 
   function renderZmanimLocationLabel(){
     const S = STRINGS[lang];
-    zmanimLocationLabel.textContent = hasLocation()
-      ? S.locationSetTo(zmanimSettings.lat.toFixed(3), zmanimSettings.lon.toFixed(3))
-      : S.locationNotSet;
+    if (!hasLocation()){
+      zmanimLocationLabel.textContent = S.locationNotSet;
+      return;
+    }
+    const coords = zmanimSettings.lat.toFixed(3) + ', ' + zmanimSettings.lon.toFixed(3);
+    let text = zmanimSettings.label ? (zmanimSettings.label + ' (' + coords + ')') : coords;
+    if (zmanimSettings.labelSource === 'nominatim') text += ' \u2013 ' + S.osmAttribution;
+    zmanimLocationLabel.textContent = text;
   }
 
   function renderZmanimSection(d){
@@ -298,7 +315,7 @@
 
       const time = document.createElement('span');
       time.className = 'zman-time';
-      time.textContent = formatTime(z.time, lang);
+      time.textContent = formatTime(z.time, lang, zmanimSettings.timezone);
 
       row.appendChild(label);
       row.appendChild(time);
@@ -325,6 +342,12 @@
   });
   zmanimCancelBtn.addEventListener('click', closeLocationForm);
 
+  // Typing directly into lat/lon means whatever came from geolocation (if
+  // any) no longer applies — the coordinates on save should be treated as
+  // manually entered from that point on.
+  zmanimLatInput.addEventListener('input', () => { locationIsLiveGPS = false; });
+  zmanimLonInput.addEventListener('input', () => { locationIsLiveGPS = false; });
+
   useMyLocationBtn.addEventListener('click', () => {
     const S = STRINGS[lang];
     if (!navigator.geolocation){
@@ -336,26 +359,40 @@
       (pos) => {
         zmanimLatInput.value = pos.coords.latitude.toFixed(4);
         zmanimLonInput.value = pos.coords.longitude.toFixed(4);
+        locationIsLiveGPS = true;
         zmanimStatus.textContent = '';
       },
       () => { zmanimStatus.textContent = S.geoError; }
     );
   });
 
-  zmanimSaveBtn.addEventListener('click', () => {
+  zmanimSaveBtn.addEventListener('click', async () => {
+    const S = STRINGS[lang];
     const lat = parseFloat(zmanimLatInput.value);
     const lon = parseFloat(zmanimLonInput.value);
     const alotMin = parseFloat(zmanimAlotInput.value);
     const tzeitMin = parseFloat(zmanimTzeitInput.value);
     const candleMin = parseFloat(zmanimCandleInput.value);
     if (isNaN(lat) || isNaN(lon)) return;
+
+    const fromGPS = locationIsLiveGPS;
+    zmanimStatus.textContent = '...';
+    const [tz, place] = await Promise.all([
+      lookupTimezone(lat, lon),
+      lookupPlaceName(lat, lon, fromGPS)
+    ]);
+
     zmanimSettings = {
       lat, lon,
+      timezone: tz,
+      label: place ? place.label : '',
+      labelSource: place ? place.source : null,
       alotMin: isNaN(alotMin) ? DEFAULT_ZMANIM_SETTINGS.alotMin : alotMin,
       tzeitMin: isNaN(tzeitMin) ? DEFAULT_ZMANIM_SETTINGS.tzeitMin : tzeitMin,
       candleMin: isNaN(candleMin) ? DEFAULT_ZMANIM_SETTINGS.candleMin : candleMin
     };
     saveZmanimSettings(zmanimSettings);
+    zmanimStatus.textContent = '';
     closeLocationForm();
     renderZmanimSection(selectedDate);
   });

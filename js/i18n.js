@@ -19,7 +19,7 @@ const STRINGS = {
     dayNotesHeading: 'Notes', zmanimHeading: 'Halachic times',
     zmanimPlaceholder: 'Set a location to see halachic times for this day.',
     zmanimPolar: 'The sun does not rise or set here on this date — halachic times can\u2019t be calculated.',
-    zmanimDisclaimer: 'Calculated locally from sunrise/sunset for your location, shown in your device\u2019s local time zone (make sure it matches your location). Common conventions (Gra-based); consult your rav/local luach for practical use.',
+    zmanimDisclaimer: 'Calculated locally from sunrise/sunset for your location. Time zone is looked up automatically for your coordinates (falls back to your device\u2019s time zone if that lookup fails or you\u2019re offline). Common conventions (Gra-based); consult your rav/local luach for practical use.',
     useMyLocation: 'Use My Location', editLocation: 'Location Settings',
     locationNotSet: 'No location set',
     locationSetTo: (lat,lon) => 'Location: ' + lat + ', ' + lon,
@@ -28,7 +28,8 @@ const STRINGS = {
     candleOffset: 'Candle lighting (min before sunset)',
     saveLocation: 'Save', cancel: 'Cancel',
     geoError: 'Could not get your location. Enter it manually below.',
-    geoUnsupported: 'Geolocation isn\u2019t available in this browser. Enter your location manually.'
+    geoUnsupported: 'Geolocation isn\u2019t available in this browser. Enter your location manually.',
+    osmAttribution: 'via OpenStreetMap'
   },
   he: {
     today: 'היום', langToggle: 'English',
@@ -44,7 +45,7 @@ const STRINGS = {
     dayNotesHeading: 'הערות', zmanimHeading: 'זמנים הלכתיים',
     zmanimPlaceholder: 'הגדר/י מיקום כדי לראות זמנים הלכתיים ליום זה.',
     zmanimPolar: 'השמש אינה זורחת/שוקעת כאן בתאריך זה — לא ניתן לחשב זמנים הלכתיים.',
-    zmanimDisclaimer: 'מחושב באופן מקומי משעות הזריחה/שקיעה במיקום שלך, ומוצג באזור הזמן המוגדר במכשירך (יש לוודא שהוא תואם למיקום). לפי שיטת הגר״א. יש להתייעץ עם רב או לוח מקומי לשימוש הלכה למעשה.',
+    zmanimDisclaimer: 'מחושב באופן מקומי משעות הזריחה/שקיעה במיקום שלך. אזור הזמן מתקבל אוטומטית לפי הקואורדינטות (ובמקרה של כשל בחיפוש או ניתוק מהאינטרנט, מוצג לפי אזור הזמן של המכשיר). לפי שיטת הגר״א. יש להתייעץ עם רב או לוח מקומי לשימוש הלכה למעשה.',
     useMyLocation: 'השתמש/י במיקום שלי', editLocation: 'הגדרות מיקום',
     locationNotSet: 'לא הוגדר מיקום',
     locationSetTo: (lat,lon) => 'מיקום: ' + lat + ', ' + lon,
@@ -53,7 +54,8 @@ const STRINGS = {
     candleOffset: 'הדלקת נרות (דקות לפני השקיעה)',
     saveLocation: 'שמור', cancel: 'ביטול',
     geoError: 'לא ניתן לאתר את מיקומך. הזן/י אותו ידנית למטה.',
-    geoUnsupported: 'איתור מיקום אינו זמין בדפדפן זה. הזן/י את המיקום ידנית.'
+    geoUnsupported: 'איתור מיקום אינו זמין בדפדפן זה. הזן/י את המיקום ידנית.',
+    osmAttribution: 'מקור: OpenStreetMap'
   }
 };
 
