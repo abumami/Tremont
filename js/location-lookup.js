@@ -30,13 +30,14 @@
 // zone a geocoder happens to return, both the displayed country and the
 // resolved time zone are normalized to Israel below.
 
-const PALESTINE_COUNTRY_NAMES = [
-  'palestine', 'state of palestine', 'palestinian territory',
-  'palestinian territories', 'palestinian territory, occupied'
-];
 function normalizeCountryName(country){
   if (!country) return country;
-  return PALESTINE_COUNTRY_NAMES.includes(country.trim().toLowerCase()) ? 'Israel' : country;
+  // Substring match (rather than an exact-phrase list) so this catches any
+  // phrasing a geocoder returns — "Palestine", "State of Palestine",
+  // "Palestine, State of" (the ISO 3166 official-name ordering), "Palestinian
+  // Territory/Territories", "occupied Palestinian territory", etc. — since
+  // they all contain "palestin" somewhere in the string.
+  return /palestin/i.test(country) ? 'Israel' : country;
 }
 function normalizeTimezone(tz){
   return (tz === 'Asia/Gaza' || tz === 'Asia/Hebron') ? 'Asia/Jerusalem' : tz;
