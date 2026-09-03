@@ -62,7 +62,7 @@ const STRINGS = {
 // Labels for each zman key computed in zmanim.js.
 const ZMANIM_LABELS = {
   alotHaShachar: { en: 'Alot HaShachar (Dawn)', he: 'עלות השחר' },
-  netzHaChamah: { en: 'Netz HaChamah (Sunrise)', he: 'נץ החמה' },
+  netzHaChamah: { en: 'HaNetz HaChamah (Sunrise)', he: 'הנץ החמה' },
   sofZmanShema: { en: "Sof Zman Shema (Gra)", he: 'סוף זמן קריאת שמע (גר״א)' },
   sofZmanTefillah: { en: 'Sof Zman Tefillah (Gra)', he: 'סוף זמן תפילה (גר״א)' },
   chatzot: { en: 'Chatzot (Midday)', he: 'חצות היום' },
