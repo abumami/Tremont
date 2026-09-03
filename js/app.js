@@ -2,7 +2,7 @@
 (function(){
   // --- Internal config (not exposed as a UI control) ---
   // Set to false to hide the color-key legend under the month grid entirely.
-  const SHOW_LEGEND = true;
+  const SHOW_LEGEND = false;
 
   const grid = document.getElementById('grid');
   const monthView = document.getElementById('monthView');
