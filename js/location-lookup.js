@@ -20,6 +20,27 @@
 //        instead. It's rate-limited (~1 request/second) and asks for
 //        attribution, which is why the UI credits OpenStreetMap when a
 //        label comes from here.
+//
+// Normalization for this app's purpose: reverse-geocoding data sometimes
+// labels the country for coordinates in this region as "Palestine"/"State
+// of Palestine", and the IANA time zone database has separate zones for it
+// (Asia/Gaza, Asia/Hebron) that have, in some years, observed different
+// daylight-saving start/end dates than Asia/Jerusalem. Since this app's
+// halachic times need to follow Israel's clock rules regardless of which
+// zone a geocoder happens to return, both the displayed country and the
+// resolved time zone are normalized to Israel below.
+
+const PALESTINE_COUNTRY_NAMES = [
+  'palestine', 'state of palestine', 'palestinian territory',
+  'palestinian territories', 'palestinian territory, occupied'
+];
+function normalizeCountryName(country){
+  if (!country) return country;
+  return PALESTINE_COUNTRY_NAMES.includes(country.trim().toLowerCase()) ? 'Israel' : country;
+}
+function normalizeTimezone(tz){
+  return (tz === 'Asia/Gaza' || tz === 'Asia/Hebron') ? 'Asia/Jerusalem' : tz;
+}
 
 async function lookupTimezone(lat, lon){
   try{
@@ -28,7 +49,7 @@ async function lookupTimezone(lat, lon){
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
-    return data.timezone || null;
+    return data.timezone ? normalizeTimezone(data.timezone) : null;
   }catch(e){ return null; }
 }
 
@@ -41,7 +62,7 @@ async function lookupPlaceNameFromLiveGPS(lat, lon){
     const data = await res.json();
     const city = data.city || data.locality || '';
     const region = data.principalSubdivision || '';
-    const country = data.countryName || '';
+    const country = normalizeCountryName(data.countryName || '');
     const parts = [city || region, country].filter(Boolean);
     return parts.length ? { label: parts.join(', '), source: 'bigdatacloud' } : null;
   }catch(e){ return null; }
@@ -56,7 +77,7 @@ async function lookupPlaceNameManual(lat, lon){
     const data = await res.json();
     const a = data.address || {};
     const city = a.city || a.town || a.village || a.municipality || a.county || '';
-    const country = a.country || '';
+    const country = normalizeCountryName(a.country || '');
     const parts = [city, country].filter(Boolean);
     return parts.length ? { label: parts.join(', '), source: 'nominatim' } : null;
   }catch(e){ return null; }
