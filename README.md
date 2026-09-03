@@ -78,4 +78,4 @@ No accounts, no analytics, no server. All data (notes, location, preferences) li
 
 ## License
 
-This project is licensed under the DGAS License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the DGAS License - see the [LICENSE](LICENSE.md) file for details.
