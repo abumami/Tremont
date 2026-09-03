@@ -77,5 +77,4 @@ Requires a browser with `Intl.DateTimeFormat` support for the Hebrew calendar (`
 No accounts, no analytics, no server. All data (notes, location, preferences) lives in your browser's local storage. The only outbound network requests are the two optional, keyless lookups described above, made directly from your browser to Open-Meteo/BigDataCloud/Nominatim when you set a zmanim location — nothing is sent anywhere otherwise.
 
 ## License
-
-*(Add a license of your choice — e.g. MIT — here.)*
+*© 2026 Abu Mami. All rights reserved.*
