@@ -130,12 +130,11 @@ const DEFAULT_ZMANIM_SETTINGS = { lat: null, lon: null, label: '', alotMin: 72, 
 
 async function loadZmanimSettings(){
   try{
-    const res = await window.storage.get('zmanim-settings');
-    if (res && res.value) return Object.assign({}, DEFAULT_ZMANIM_SETTINGS, JSON.parse(res.value));
+    const val = await LocalStore.get('zmanim-settings');
+    if (val) return Object.assign({}, DEFAULT_ZMANIM_SETTINGS, JSON.parse(val));
   }catch(e){ /* no settings saved yet */ }
   return Object.assign({}, DEFAULT_ZMANIM_SETTINGS);
 }
 async function saveZmanimSettings(settings){
-  try{ await window.storage.set('zmanim-settings', JSON.stringify(settings)); }
-  catch(e){ /* best-effort; settings still apply for this session */ }
+  await LocalStore.set('zmanim-settings', JSON.stringify(settings));
 }

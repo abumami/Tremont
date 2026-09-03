@@ -91,11 +91,14 @@
   </div>
 
   <div id="legendWrap" class="legend">
-    <div><span class="dot civil-dot"></span><span id="legendCivil"></span></div>
-    <div><span class="dot hebrew-dot"></span><span id="legendHebrew"></span></div>
-    <div><span class="dot parsha-dot"></span><span id="legendParsha"></span></div>
-    <div><span class="dot holiday-dot"></span><span id="legendHoliday"></span></div>
+    <div id="legendItems" style="display:contents">
+      <div><span class="dot civil-dot"></span><span id="legendCivil"></span></div>
+      <div><span class="dot hebrew-dot"></span><span id="legendHebrew"></span></div>
+      <div><span class="dot parsha-dot"></span><span id="legendParsha"></span></div>
+      <div><span class="dot holiday-dot"></span><span id="legendHoliday"></span></div>
+    </div>
     <div class="save-note" id="saveNote"></div>
+    <button class="link-btn" id="legendToggleBtn"></button>
   </div>
 </div>
 
@@ -103,6 +106,7 @@
 <script src="js/hebrew-dates.js"></script>
 <script src="js/holidays.js"></script>
 <script src="js/parsha.js"></script>
+<script src="js/storage.js"></script>
 <script src="js/notes.js"></script>
 <script src="js/zmanim.js"></script>
 <script src="js/app.js"></script>

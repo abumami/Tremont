@@ -11,8 +11,8 @@
   const locBtn = document.getElementById('locBtn');
   const monthNav = document.getElementById('monthNav');
   const legendWrap = document.getElementById('legendWrap');
-  legendWrap.classList.add('hidden');
-
+  const legendItems = document.getElementById('legendItems');
+  const legendToggleBtn = document.getElementById('legendToggleBtn');
 
   const dayViewBtn = document.getElementById('dayViewBtn');
   const dayView = document.getElementById('dayView');
@@ -53,6 +53,12 @@
     if (currentView === 'day') renderDayView();
   });
 
+  let legendVisible = true;
+  LocalStore.get('legend-visible').then(v => {
+    if (v === 'false') legendVisible = false;
+    applyLegendVisibility();
+  });
+
   const today = new Date();
   today.setHours(0,0,0,0);
   let viewYear = today.getFullYear();
@@ -87,6 +93,7 @@
     zmanimCancelBtn.textContent = S.cancel;
     zmanimDisclaimerEl.textContent = S.zmanimDisclaimer;
     dayNoteInput.placeholder = S.addNote;
+    legendToggleBtn.textContent = legendVisible ? S.hideLegend : S.showLegend;
     document.getElementById('legendCivil').textContent = S.legendCivil;
     document.getElementById('legendHebrew').textContent = S.legendHebrew;
     document.getElementById('legendParsha').textContent = S.legendParsha;
@@ -359,7 +366,7 @@
     currentView = 'month';
     dayView.classList.add('hidden');
     monthView.classList.remove('hidden');
-//    legendWrap.classList.remove('hidden');
+    legendWrap.classList.remove('hidden');
     monthNav.classList.remove('hidden');
     render();
   }
@@ -367,7 +374,7 @@
   function showDayView(){
     currentView = 'day';
     monthView.classList.add('hidden');
-//    legendWrap.classList.add('hidden');
+    legendWrap.classList.add('hidden');
     monthNav.classList.add('hidden');
     dayView.classList.remove('hidden');
     renderDayView();
@@ -377,6 +384,17 @@
     if (currentView === 'day') renderDayView();
     else render();
   }
+
+  function applyLegendVisibility(){
+    legendItems.style.display = legendVisible ? 'contents' : 'none';
+    legendToggleBtn.textContent = legendVisible ? STRINGS[lang].hideLegend : STRINGS[lang].showLegend;
+  }
+
+  legendToggleBtn.addEventListener('click', () => {
+    legendVisible = !legendVisible;
+    applyLegendVisibility();
+    LocalStore.set('legend-visible', legendVisible ? 'true' : 'false');
+  });
 
   document.getElementById('prevBtn').addEventListener('click', () => {
     viewMonth -= 1;
