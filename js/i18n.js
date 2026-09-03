@@ -28,8 +28,7 @@ const STRINGS = {
     candleOffset: 'Candle lighting (min before sunset)',
     saveLocation: 'Save', cancel: 'Cancel',
     geoError: 'Could not get your location. Enter it manually below.',
-    geoUnsupported: 'Geolocation isn\u2019t available in this browser. Enter your location manually.',
-    hideLegend: 'Hide Legend', showLegend: 'Show Legend'
+    geoUnsupported: 'Geolocation isn\u2019t available in this browser. Enter your location manually.'
   },
   he: {
     today: 'היום', langToggle: 'English',
@@ -54,8 +53,7 @@ const STRINGS = {
     candleOffset: 'הדלקת נרות (דקות לפני השקיעה)',
     saveLocation: 'שמור', cancel: 'ביטול',
     geoError: 'לא ניתן לאתר את מיקומך. הזן/י אותו ידנית למטה.',
-    geoUnsupported: 'איתור מיקום אינו זמין בדפדפן זה. הזן/י את המיקום ידנית.',
-    hideLegend: 'הסתר מקרא', showLegend: 'הצג מקרא'
+    geoUnsupported: 'איתור מיקום אינו זמין בדפדפן זה. הזן/י את המיקום ידנית.'
   }
 };
 

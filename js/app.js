@@ -1,5 +1,9 @@
 // ================= App: state, rendering, event wiring =================
 (function(){
+  // --- Internal config (not exposed as a UI control) ---
+  // Set to false to hide the color-key legend under the month grid entirely.
+  const SHOW_LEGEND = true;
+
   const grid = document.getElementById('grid');
   const monthView = document.getElementById('monthView');
   const civilTitle = document.getElementById('civilTitle');
@@ -12,7 +16,6 @@
   const monthNav = document.getElementById('monthNav');
   const legendWrap = document.getElementById('legendWrap');
   const legendItems = document.getElementById('legendItems');
-  const legendToggleBtn = document.getElementById('legendToggleBtn');
 
   const dayViewBtn = document.getElementById('dayViewBtn');
   const dayView = document.getElementById('dayView');
@@ -53,11 +56,7 @@
     if (currentView === 'day') renderDayView();
   });
 
-  let legendVisible = true;
-  LocalStore.get('legend-visible').then(v => {
-    if (v === 'false') legendVisible = false;
-    applyLegendVisibility();
-  });
+  legendItems.style.display = SHOW_LEGEND ? 'contents' : 'none';
 
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -93,7 +92,6 @@
     zmanimCancelBtn.textContent = S.cancel;
     zmanimDisclaimerEl.textContent = S.zmanimDisclaimer;
     dayNoteInput.placeholder = S.addNote;
-    legendToggleBtn.textContent = legendVisible ? S.hideLegend : S.showLegend;
     document.getElementById('legendCivil').textContent = S.legendCivil;
     document.getElementById('legendHebrew').textContent = S.legendHebrew;
     document.getElementById('legendParsha').textContent = S.legendParsha;
@@ -384,17 +382,6 @@
     if (currentView === 'day') renderDayView();
     else render();
   }
-
-  function applyLegendVisibility(){
-    legendItems.style.display = legendVisible ? 'contents' : 'none';
-    legendToggleBtn.textContent = legendVisible ? STRINGS[lang].hideLegend : STRINGS[lang].showLegend;
-  }
-
-  legendToggleBtn.addEventListener('click', () => {
-    legendVisible = !legendVisible;
-    applyLegendVisibility();
-    LocalStore.set('legend-visible', legendVisible ? 'true' : 'false');
-  });
 
   document.getElementById('prevBtn').addEventListener('click', () => {
     viewMonth -= 1;
