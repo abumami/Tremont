@@ -78,4 +78,6 @@ No accounts, no analytics, no server. All data (notes, location, preferences) li
 
 ## License
 
+*© 2026 Abu Mami. All rights reserved.*
+
 This project is licensed under the DGAS License - see the [LICENSE](LICENSE.md) file for details.

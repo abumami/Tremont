@@ -2,7 +2,7 @@
 (function(){
   // --- Internal config (not exposed as a UI control) ---
   // Set to false to hide the color-key legend under the month grid entirely.
-  const SHOW_LEGEND = false;
+  const SHOW_LEGEND = true;
 
   const grid = document.getElementById('grid');
   const monthView = document.getElementById('monthView');
@@ -19,7 +19,7 @@
 
   const dayViewBtn = document.getElementById('dayViewBtn');
   const dayView = document.getElementById('dayView');
-  const backToMonthBtn = document.getElementById('backToMonthBtn');
+  const dayNav = document.getElementById('dayNav');
   const dayPrevBtn = document.getElementById('dayPrevBtn');
   const dayTodayBtn = document.getElementById('dayTodayBtn');
   const dayNextBtn = document.getElementById('dayNextBtn');
@@ -85,11 +85,8 @@
     todayBtn.textContent = S.today;
     langBtn.textContent = S.langToggle;
     locBtn.textContent = israel ? S.locDiaspora : S.locIsrael;
-    dayViewBtn.textContent = S.dayViewBtn;
-    backToMonthBtn.textContent = S.backToMonth;
-    dayPrevBtn.textContent = S.prevDay;
+    dayViewBtn.textContent = currentView === 'day' ? S.backToMonth : S.dayViewBtn;
     dayTodayBtn.textContent = S.today;
-    dayNextBtn.textContent = S.nextDay;
     dayNoteLabel.textContent = S.dayNotesHeading;
     dayZmanimLabel.textContent = S.zmanimHeading;
     dayZmanimPlaceholder.textContent = S.zmanimPlaceholder;
@@ -403,6 +400,7 @@
     monthView.classList.remove('hidden');
     legendWrap.classList.remove('hidden');
     monthNav.classList.remove('hidden');
+    dayNav.classList.add('hidden');
     render();
   }
 
@@ -411,6 +409,7 @@
     monthView.classList.add('hidden');
     legendWrap.classList.add('hidden');
     monthNav.classList.add('hidden');
+    dayNav.classList.remove('hidden');
     dayView.classList.remove('hidden');
     renderDayView();
   }
@@ -438,8 +437,10 @@
   langBtn.addEventListener('click', () => { lang = lang === 'en' ? 'he' : 'en'; renderCurrent(); });
   locBtn.addEventListener('click', () => { israel = !israel; renderCurrent(); });
 
-  dayViewBtn.addEventListener('click', showDayView);
-  backToMonthBtn.addEventListener('click', showMonthView);
+  dayViewBtn.addEventListener('click', () => {
+    if (currentView === 'day') showMonthView();
+    else showDayView();
+  });
   dayPrevBtn.addEventListener('click', () => { selectedDate = addDays(selectedDate, -1); renderDayView(); });
   dayTodayBtn.addEventListener('click', () => { selectedDate = new Date(today); renderDayView(); });
   dayNextBtn.addEventListener('click', () => { selectedDate = addDays(selectedDate, 1); renderDayView(); });

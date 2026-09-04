@@ -272,23 +272,12 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 .hidden{ display: none !important; }
 
 /* ---- Day view ---- */
-.day-view-top{ display:flex; margin-bottom: 0; }
-
-.day-nav{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
 .day-tags{
   display:flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 12px;
+  margin: 8px 0 12px;
 }
 .day-tags .holiday-tag, .day-tags .parsha-tag, .day-tags .omer-tag{
   font-size: 13px;
