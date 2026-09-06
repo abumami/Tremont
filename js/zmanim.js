@@ -49,9 +49,16 @@ function calcSunUTCHours(year, month, day, lat, lng, isSunrise, zenith){
 
 // Returns {sunrise, sunset} as JS Date objects (or null if the sun doesn't
 // rise/set that day at that latitude), for the given calendar date/lat/lon.
-function sunTimesFor(date, lat, lon){
+// `zenith` is the sun's angular distance from the zenith (in degrees) at the
+// moment counted as "rise"/"set" — defaults to 90.8333°, the standard value
+// accounting for atmospheric refraction and the sun's apparent radius (i.e.
+// true geometric sunrise/sunset). Pass a different angle to get other
+// depression-angle-based times instead — e.g. 96° is roughly the common
+// 16.1°-below-horizon standard some use for alot hashachar/tzeit hakochavim,
+// 100.5° is close to the 10.2° some use for misheyakir, etc.
+function sunTimesFor(date, lat, lon, zenith){
+  if (zenith === undefined || zenith === null) zenith = 90.8333;
   const y = date.getFullYear(), m = date.getMonth()+1, d = date.getDate();
-  const zenith = 90.8333; // standard: accounts for refraction + solar radius
   const srUTC = calcSunUTCHours(y, m, d, lat, lon, true, zenith);
   const ssUTC = calcSunUTCHours(y, m, d, lat, lon, false, zenith);
   const toDate = (utcHours) => utcHours === null ? null : new Date(Date.UTC(y, m-1, d) + utcHours*3600000);
