@@ -28,7 +28,16 @@ const STRINGS = {
     saveLocation: 'Save', cancel: 'Cancel',
     geoError: 'Could not get your location. Enter it manually below.',
     geoUnsupported: 'Geolocation isn\u2019t available in this browser. Enter your location manually.',
-    osmAttribution: 'via OpenStreetMap'
+    osmAttribution: 'via OpenStreetMap',
+    exportBackup: 'Export Backup', importBackup: 'Import Backup',
+    importConfirm: 'Import',
+    importSummary: (count, hasZmanim, dateStr) =>
+      count + ' note' + (count === 1 ? '' : 's') + (hasZmanim ? ' and location settings' : '') +
+      ' from a backup made ' + dateStr + '. Import and merge into your current data?',
+    backupExported: 'Backup downloaded', backupImported: 'Backup imported',
+    backupInvalid: 'That doesn\u2019t look like a Tremont backup file.',
+    locationSearchPlaceholder: 'Search for a city\u2026',
+    orManually: 'or set coordinates manually'
   },
   he: {
     today: 'היום', langToggle: 'English',
@@ -53,7 +62,16 @@ const STRINGS = {
     saveLocation: 'שמור', cancel: 'ביטול',
     geoError: 'לא ניתן לאתר את מיקומך. הזן/י אותו ידנית למטה.',
     geoUnsupported: 'איתור מיקום אינו זמין בדפדפן זה. הזן/י את המיקום ידנית.',
-    osmAttribution: 'מקור: OpenStreetMap'
+    osmAttribution: 'מקור: OpenStreetMap',
+    exportBackup: 'ייצוא גיבוי', importBackup: 'ייבוא גיבוי',
+    importConfirm: 'ייבוא',
+    importSummary: (count, hasZmanim, dateStr) =>
+      count + ' הערות' + (hasZmanim ? ' והגדרות מיקום' : '') +
+      ' מתוך גיבוי מתאריך ' + dateStr + '. לייבא ולמזג עם הנתונים הנוכחיים?',
+    backupExported: 'הגיבוי הורד', backupImported: 'הגיבוי יובא',
+    backupInvalid: 'זהו לא קובץ גיבוי תקין של Tremont.',
+    locationSearchPlaceholder: 'חיפוש עיר\u2026',
+    orManually: 'או הזנת קואורדינטות ידנית'
   }
 };
 

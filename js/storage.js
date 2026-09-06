@@ -30,5 +30,24 @@ const LocalStore = {
     }
     try{ localStorage.removeItem(key); }
     catch(e){ /* ignore */ }
+  },
+  // Lists keys starting with `prefix` (or all keys if omitted). Needed for
+  // backup/export, since notes are stored one-per-day under 'note:<date>'
+  // with no central index of which dates exist.
+  async list(prefix){
+    if (window.storage && typeof window.storage.list === 'function'){
+      try{
+        const res = await window.storage.list(prefix);
+        return res ? res.keys : [];
+      }catch(e){ /* fall through to localStorage */ }
+    }
+    try{
+      const keys = [];
+      for (let i=0; i<localStorage.length; i++){
+        const k = localStorage.key(i);
+        if (!prefix || (k && k.startsWith(prefix))) keys.push(k);
+      }
+      return keys;
+    }catch(e){ return []; }
   }
 };

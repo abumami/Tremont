@@ -32,9 +32,17 @@
   const alotLabel = document.getElementById('alotLabel');
   const tzeitLabel = document.getElementById('tzeitLabel');
   const candleLabel = document.getElementById('candleLabel');
+  const orManuallyLabel = document.getElementById('orManuallyLabel');
+  const zmanimSearchInput = document.getElementById('zmanimSearchInput');
+  const zmanimSearchResults = document.getElementById('zmanimSearchResults');
 
   let zmanimSettings = Object.assign({}, DEFAULT_ZMANIM_SETTINGS);
-  let locationIsLiveGPS = false;
+  // How the coordinates currently in the lat/lon fields were obtained —
+  // determines which reverse-geocode provider to use on Save (see
+  // location-lookup.js for why), or whether to skip that call entirely
+  // because a search result already supplied a label/country.
+  let locationSource = 'manual'; // 'manual' | 'gps' | 'search'
+  let pendingSearchResult = null; // set when locationSource === 'search'
 
   // Called explicitly by app.js once AppState exists — kept out of this
   // file's own top-level execution because a .then() callback registered at
@@ -75,6 +83,8 @@
     zmanimCancelBtn.textContent = S.cancel;
     zmanimDisclaimerEl.textContent = S.zmanimDisclaimer;
     dayNoteInput.placeholder = S.addNote;
+    orManuallyLabel.textContent = S.orManually;
+    zmanimSearchInput.placeholder = S.locationSearchPlaceholder;
   }
 
   function renderDayView(){
@@ -114,7 +124,7 @@
     }
     const coords = zmanimSettings.lat.toFixed(3) + ', ' + zmanimSettings.lon.toFixed(3);
     let text = zmanimSettings.label ? (zmanimSettings.label + ' (' + coords + ')') : coords;
-    if (zmanimSettings.labelSource === 'nominatim') text += ' \u2013 ' + S.osmAttribution;
+    if (zmanimSettings.labelSource === 'nominatim' || zmanimSettings.labelSource === 'photon') text += ' \u2013 ' + S.osmAttribution;
     zmanimLocationLabel.textContent = text;
   }
 
@@ -159,17 +169,25 @@
     });
   }
 
+  function hideSearchResults(){
+    zmanimSearchResults.classList.add('hidden');
+    zmanimSearchResults.innerHTML = '';
+  }
+
   function openLocationForm(){
     zmanimLatInput.value = zmanimSettings.lat !== null ? zmanimSettings.lat : '';
     zmanimLonInput.value = zmanimSettings.lon !== null ? zmanimSettings.lon : '';
     zmanimAlotInput.value = zmanimSettings.alotMin;
     zmanimTzeitInput.value = zmanimSettings.tzeitMin;
     zmanimCandleInput.value = zmanimSettings.candleMin;
+    zmanimSearchInput.value = '';
+    hideSearchResults();
     zmanimStatus.textContent = '';
     zmanimSettingsForm.classList.remove('hidden');
   }
   function closeLocationForm(){
     zmanimSettingsForm.classList.add('hidden');
+    hideSearchResults();
   }
 
   editLocationBtn.addEventListener('click', () => {
@@ -178,11 +196,11 @@
   });
   zmanimCancelBtn.addEventListener('click', closeLocationForm);
 
-  // Typing directly into lat/lon means whatever came from geolocation (if
-  // any) no longer applies — the coordinates on save should be treated as
-  // manually entered from that point on.
-  zmanimLatInput.addEventListener('input', () => { locationIsLiveGPS = false; });
-  zmanimLonInput.addEventListener('input', () => { locationIsLiveGPS = false; });
+  // Typing directly into lat/lon means whatever came from geolocation or a
+  // search pick no longer applies — treat the coordinates as manually
+  // entered from that point on.
+  zmanimLatInput.addEventListener('input', () => { locationSource = 'manual'; pendingSearchResult = null; });
+  zmanimLonInput.addEventListener('input', () => { locationSource = 'manual'; pendingSearchResult = null; });
 
   useMyLocationBtn.addEventListener('click', () => {
     const S = STRINGS[AppState.lang];
@@ -195,11 +213,57 @@
       (pos) => {
         zmanimLatInput.value = pos.coords.latitude.toFixed(4);
         zmanimLonInput.value = pos.coords.longitude.toFixed(4);
-        locationIsLiveGPS = true;
+        locationSource = 'gps';
+        pendingSearchResult = null;
         zmanimStatus.textContent = '';
       },
       () => { zmanimStatus.textContent = S.geoError; }
     );
+  });
+
+  // ---- Location search (autosuggest) ----
+  let searchDebounce = null;
+  let searchToken = 0;
+
+  function renderSearchResults(results){
+    zmanimSearchResults.innerHTML = '';
+    if (!results.length){
+      zmanimSearchResults.classList.add('hidden');
+      return;
+    }
+    results.forEach(r => {
+      const item = document.createElement('div');
+      item.className = 'search-result-item';
+      item.textContent = r.label;
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // keep focus so the subsequent 'blur' hide doesn't race this
+        zmanimSearchInput.value = r.label;
+        zmanimLatInput.value = r.lat.toFixed(4);
+        zmanimLonInput.value = r.lon.toFixed(4);
+        locationSource = 'search';
+        pendingSearchResult = r;
+        hideSearchResults();
+      });
+      zmanimSearchResults.appendChild(item);
+    });
+    zmanimSearchResults.classList.remove('hidden');
+  }
+
+  zmanimSearchInput.addEventListener('input', () => {
+    const query = zmanimSearchInput.value;
+    if (searchDebounce) clearTimeout(searchDebounce);
+    const myToken = ++searchToken;
+    searchDebounce = setTimeout(async () => {
+      const results = await searchPlaces(query, AppState.lang, 6);
+      if (myToken !== searchToken) return; // a newer keystroke superseded this search
+      renderSearchResults(results);
+    }, 350);
+  });
+  zmanimSearchInput.addEventListener('blur', () => {
+    setTimeout(hideSearchResults, 150); // delayed so a result's mousedown still registers
+  });
+  zmanimSearchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideSearchResults();
   });
 
   zmanimSaveBtn.addEventListener('click', async () => {
@@ -210,12 +274,19 @@
     const candleMin = parseFloat(zmanimCandleInput.value);
     if (isNaN(lat) || isNaN(lon)) return;
 
-    const fromGPS = locationIsLiveGPS;
     zmanimStatus.textContent = '...';
-    const [tz, place] = await Promise.all([
-      lookupTimezone(lat, lon),
-      lookupPlaceName(lat, lon, fromGPS)
-    ]);
+    let tz, place;
+    if (locationSource === 'search' && pendingSearchResult){
+      // Already have a good label/country from the search result — no need
+      // for a separate reverse-geocode call, just resolve the time zone.
+      tz = await lookupTimezone(lat, lon);
+      place = { label: pendingSearchResult.label, source: 'photon', country: pendingSearchResult.country };
+    } else {
+      [tz, place] = await Promise.all([
+        lookupTimezone(lat, lon),
+        lookupPlaceName(lat, lon, locationSource === 'gps')
+      ]);
+    }
 
     zmanimSettings = {
       lat, lon,
@@ -227,9 +298,16 @@
       candleMin: isNaN(candleMin) ? DEFAULT_ZMANIM_SETTINGS.candleMin : candleMin
     };
     saveZmanimSettings(zmanimSettings);
+
+    // Auto-set Israel/Diaspora from the resolved country, so holiday
+    // lengths and the parsha split follow wherever the location actually is.
+    if (place && place.country){
+      AppState.israel = (place.country === 'Israel');
+    }
+
     zmanimStatus.textContent = '';
     closeLocationForm();
-    renderZmanimSection(AppState.selectedDate);
+    renderDayView();
   });
 
   dayPrevBtn.addEventListener('click', () => { AppState.selectedDate = addDays(AppState.selectedDate, -1); renderDayView(); });

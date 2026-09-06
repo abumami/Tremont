@@ -6,7 +6,7 @@
 (function(){
   // --- Internal config (not exposed as a UI control) ---
   // Set to false to hide the color-key legend under the month grid entirely.
-  const SHOW_LEGEND = false;
+  const SHOW_LEGEND = true;
 
   const grid = document.getElementById('grid');
   const weekdaysEl = document.getElementById('weekdays');
@@ -35,6 +35,8 @@
       div.textContent = n;
       weekdaysEl.appendChild(div);
     });
+
+    if (typeof applyBackupStrings === 'function') applyBackupStrings();
   }
 
   function renderMonthView(){

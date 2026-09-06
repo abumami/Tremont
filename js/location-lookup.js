@@ -21,6 +21,11 @@
 //        attribution, which is why the UI credits OpenStreetMap when a
 //        label comes from here.
 //
+// 3. Place search (forward geocoding, for the autosuggest box) — Komoot's
+//    Photon (photon.komoot.io), an open-source geocoder built specifically
+//    for search-as-you-type. Free and keyless for reasonable personal use;
+//    also OpenStreetMap-derived, so results are credited the same way.
+//
 // Normalization for this app's purpose: reverse-geocoding data sometimes
 // labels the country for coordinates in this region as "Palestine"/"State
 // of Palestine", and the IANA time zone database has separate zones for it
@@ -65,7 +70,7 @@ async function lookupPlaceNameFromLiveGPS(lat, lon){
     const region = data.principalSubdivision || '';
     const country = normalizeCountryName(data.countryName || '');
     const parts = [city || region, country].filter(Boolean);
-    return parts.length ? { label: parts.join(', '), source: 'bigdatacloud' } : null;
+    return parts.length ? { label: parts.join(', '), source: 'bigdatacloud', country: country } : null;
   }catch(e){ return null; }
 }
 
@@ -80,11 +85,36 @@ async function lookupPlaceNameManual(lat, lon){
     const city = a.city || a.town || a.village || a.municipality || a.county || '';
     const country = normalizeCountryName(a.country || '');
     const parts = [city, country].filter(Boolean);
-    return parts.length ? { label: parts.join(', '), source: 'nominatim' } : null;
+    return parts.length ? { label: parts.join(', '), source: 'nominatim', country: country } : null;
   }catch(e){ return null; }
 }
 
 // Picks the right provider for how these coordinates were obtained.
 async function lookupPlaceName(lat, lon, fromLiveGPS){
   return fromLiveGPS ? lookupPlaceNameFromLiveGPS(lat, lon) : lookupPlaceNameManual(lat, lon);
+}
+
+// Forward search for the autosuggest box — returns up to `limit` candidate
+// places for a partial query, each with coordinates and a normalized
+// country name ready to use directly (no separate reverse-geocode call
+// needed once the user picks one).
+async function searchPlaces(query, lang, limit){
+  if (!query || query.trim().length < 2) return [];
+  try{
+    const langParam = lang === 'he' ? 'he' : 'en';
+    const url = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(query.trim()) +
+      '&limit=' + (limit || 6) + '&lang=' + langParam;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.features || []).map(f => {
+      const p = f.properties || {};
+      const coords = f.geometry && f.geometry.coordinates; // GeoJSON: [lon, lat]
+      if (!coords) return null;
+      const country = normalizeCountryName(p.country || '');
+      const parts = [p.name, (p.city && p.city !== p.name) ? p.city : null, p.state, country].filter(Boolean);
+      if (!parts.length) return null;
+      return { label: parts.join(', '), lat: coords[1], lon: coords[0], country: country };
+    }).filter(Boolean);
+  }catch(e){ return []; }
 }
