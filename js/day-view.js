@@ -43,6 +43,7 @@
   // because a search result already supplied a label/country.
   let locationSource = 'manual'; // 'manual' | 'gps' | 'search'
   let pendingSearchResult = null; // set when locationSource === 'search'
+  let candleManuallyEdited = false; // true once the user types into the candle-offset field this session
 
   // Called explicitly by app.js once AppState exists — kept out of this
   // file's own top-level execution because a .then() callback registered at
@@ -182,6 +183,7 @@
     zmanimCandleInput.value = zmanimSettings.candleMin;
     zmanimSearchInput.value = '';
     hideSearchResults();
+    candleManuallyEdited = false;
     zmanimStatus.textContent = '';
     zmanimSettingsForm.classList.remove('hidden');
   }
@@ -201,6 +203,7 @@
   // entered from that point on.
   zmanimLatInput.addEventListener('input', () => { locationSource = 'manual'; pendingSearchResult = null; });
   zmanimLonInput.addEventListener('input', () => { locationSource = 'manual'; pendingSearchResult = null; });
+  zmanimCandleInput.addEventListener('input', () => { candleManuallyEdited = true; });
 
   useMyLocationBtn.addEventListener('click', () => {
     const S = STRINGS[AppState.lang];
@@ -215,6 +218,7 @@
         zmanimLonInput.value = pos.coords.longitude.toFixed(4);
         locationSource = 'gps';
         pendingSearchResult = null;
+        candleManuallyEdited = false;
         zmanimStatus.textContent = '';
       },
       () => { zmanimStatus.textContent = S.geoError; }
@@ -242,6 +246,7 @@
         zmanimLonInput.value = r.lon.toFixed(4);
         locationSource = 'search';
         pendingSearchResult = r;
+        candleManuallyEdited = false;
         hideSearchResults();
       });
       zmanimSearchResults.appendChild(item);
@@ -271,22 +276,33 @@
     const lon = parseFloat(zmanimLonInput.value);
     const alotMin = parseFloat(zmanimAlotInput.value);
     const tzeitMin = parseFloat(zmanimTzeitInput.value);
-    const candleMin = parseFloat(zmanimCandleInput.value);
+    const manualCandleMin = parseFloat(zmanimCandleInput.value);
     if (isNaN(lat) || isNaN(lon)) return;
 
     zmanimStatus.textContent = '...';
     let tz, place;
     if (locationSource === 'search' && pendingSearchResult){
-      // Already have a good label/country from the search result — no need
-      // for a separate reverse-geocode call, just resolve the time zone.
+      // Already have a good label/country/city from the search result — no
+      // need for a separate reverse-geocode call, just resolve the time zone.
       tz = await lookupTimezone(lat, lon);
-      place = { label: pendingSearchResult.label, source: 'photon', country: pendingSearchResult.country };
+      place = { label: pendingSearchResult.label, source: 'photon', country: pendingSearchResult.country, city: pendingSearchResult.city };
     } else {
       [tz, place] = await Promise.all([
         lookupTimezone(lat, lon),
         lookupPlaceName(lat, lon, locationSource === 'gps')
       ]);
     }
+
+    // Israel/Diaspora follows the resolved country (falls back to whatever
+    // the toggle is currently set to if the lookup failed/offline).
+    const isIsraelResolved = (place && place.country) ? (place.country === 'Israel') : AppState.israel;
+
+    // Candle-lighting offset follows local minhag for the resolved city
+    // (see js/config.js) unless the user typed their own value this session.
+    const candleMin = candleManuallyEdited && !isNaN(manualCandleMin)
+      ? manualCandleMin
+      : candleMinutesForLocation(place && place.city, isIsraelResolved);
+    zmanimCandleInput.value = candleMin;
 
     zmanimSettings = {
       lat, lon,
@@ -295,15 +311,13 @@
       labelSource: place ? place.source : null,
       alotMin: isNaN(alotMin) ? DEFAULT_ZMANIM_SETTINGS.alotMin : alotMin,
       tzeitMin: isNaN(tzeitMin) ? DEFAULT_ZMANIM_SETTINGS.tzeitMin : tzeitMin,
-      candleMin: isNaN(candleMin) ? DEFAULT_ZMANIM_SETTINGS.candleMin : candleMin
+      candleMin: candleMin
     };
     saveZmanimSettings(zmanimSettings);
 
     // Auto-set Israel/Diaspora from the resolved country, so holiday
     // lengths and the parsha split follow wherever the location actually is.
-    if (place && place.country){
-      AppState.israel = (place.country === 'Israel');
-    }
+    AppState.israel = isIsraelResolved;
 
     zmanimStatus.textContent = '';
     closeLocationForm();

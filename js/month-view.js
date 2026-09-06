@@ -4,10 +4,6 @@
 // and is invoked by app.js — this file never decides which view is showing.
 
 (function(){
-  // --- Internal config (not exposed as a UI control) ---
-  // Set to false to hide the color-key legend under the month grid entirely.
-  const SHOW_LEGEND = true;
-
   const grid = document.getElementById('grid');
   const weekdaysEl = document.getElementById('weekdays');
   const prevBtn = document.getElementById('prevBtn');

@@ -70,7 +70,7 @@ async function lookupPlaceNameFromLiveGPS(lat, lon){
     const region = data.principalSubdivision || '';
     const country = normalizeCountryName(data.countryName || '');
     const parts = [city || region, country].filter(Boolean);
-    return parts.length ? { label: parts.join(', '), source: 'bigdatacloud', country: country } : null;
+    return parts.length ? { label: parts.join(', '), source: 'bigdatacloud', country: country, city: city || null } : null;
   }catch(e){ return null; }
 }
 
@@ -85,7 +85,7 @@ async function lookupPlaceNameManual(lat, lon){
     const city = a.city || a.town || a.village || a.municipality || a.county || '';
     const country = normalizeCountryName(a.country || '');
     const parts = [city, country].filter(Boolean);
-    return parts.length ? { label: parts.join(', '), source: 'nominatim', country: country } : null;
+    return parts.length ? { label: parts.join(', '), source: 'nominatim', country: country, city: city || null } : null;
   }catch(e){ return null; }
 }
 
@@ -114,7 +114,7 @@ async function searchPlaces(query, lang, limit){
       const country = normalizeCountryName(p.country || '');
       const parts = [p.name, (p.city && p.city !== p.name) ? p.city : null, p.state, country].filter(Boolean);
       if (!parts.length) return null;
-      return { label: parts.join(', '), lat: coords[1], lon: coords[0], country: country };
+      return { label: parts.join(', '), lat: coords[1], lon: coords[0], country: country, city: p.name || null };
     }).filter(Boolean);
   }catch(e){ return []; }
 }
