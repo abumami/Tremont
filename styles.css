@@ -421,16 +421,19 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 
 .zmanim-settings-grid{
   display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px 12px;
+  grid-template-columns: repeat(3, minmax(110px, 1fr));
+  grid-template-rows: auto auto;
+  grid-auto-flow: column;
+  gap: 4px 12px;
   margin: 10px 0;
 }
 .zmanim-settings-grid label{
-  display:flex;
-  flex-direction:column;
-  gap: 3px;
+  display: contents;
+}
+.zmanim-settings-grid label span{
   font-size: 11.5px;
   color: var(--ink-soft);
+  align-self: end;
 }
 .zmanim-settings-grid input{
   border: 1px solid var(--rule-strong);
@@ -461,6 +464,13 @@ nav{ display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
 }
 @media (max-width: 480px){
   #zmanimList{ grid-template-columns: 1fr; grid-auto-flow: row; }
+  .zmanim-settings-grid{
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-flow: row;
+  }
+  .zmanim-settings-grid label{ display:flex; flex-direction:column; gap: 3px; }
+  .zmanim-settings-grid label span{ align-self: auto; }
 }
 .zman-row{
   display:flex;
