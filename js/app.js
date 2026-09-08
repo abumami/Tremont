@@ -20,16 +20,24 @@ const legendWrap = document.getElementById('legendWrap');
 
 // Shared, mutable state both view files read from and write to.
 const AppState = (function(){
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  return {
+  function computeToday(){
+    const d = new Date();
+    d.setHours(0,0,0,0);
+    return d;
+  }
+  const state = {
     lang: 'en',
     israel: false,
     currentView: 'month',
-    today: today,
-    selectedDate: new Date(today),
+    selectedDate: computeToday(),
     currentDayKey: null
   };
+  // `today` is a live getter, not a cached value — recomputed on every read
+  // so it can't go stale if the tab is left open across midnight (a plain
+  // cached Date here previously meant "Today" would keep pointing at
+  // whatever day it was when the page first loaded).
+  Object.defineProperty(state, 'today', { get: computeToday });
+  return state;
 })();
 
 function applySharedStrings(){

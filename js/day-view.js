@@ -19,8 +19,6 @@
   const useMyLocationBtn = document.getElementById('useMyLocationBtn');
   const zmanimLatInput = document.getElementById('zmanimLatInput');
   const zmanimLonInput = document.getElementById('zmanimLonInput');
-  const zmanimAlotInput = document.getElementById('zmanimAlotInput');
-  const zmanimTzeitInput = document.getElementById('zmanimTzeitInput');
   const zmanimCandleInput = document.getElementById('zmanimCandleInput');
   const zmanimSaveBtn = document.getElementById('zmanimSaveBtn');
   const zmanimCancelBtn = document.getElementById('zmanimCancelBtn');
@@ -29,8 +27,6 @@
   const zmanimDisclaimerEl = document.getElementById('zmanimDisclaimer');
   const latLabel = document.getElementById('latLabel');
   const lonLabel = document.getElementById('lonLabel');
-  const alotLabel = document.getElementById('alotLabel');
-  const tzeitLabel = document.getElementById('tzeitLabel');
   const candleLabel = document.getElementById('candleLabel');
   const orManuallyLabel = document.getElementById('orManuallyLabel');
   const zmanimSearchInput = document.getElementById('zmanimSearchInput');
@@ -77,8 +73,6 @@
     useMyLocationBtn.textContent = S.useMyLocation;
     latLabel.textContent = S.latitude;
     lonLabel.textContent = S.longitude;
-    alotLabel.textContent = S.alotOffset;
-    tzeitLabel.textContent = S.tzeitOffset;
     candleLabel.textContent = S.candleOffset;
     zmanimSaveBtn.textContent = S.saveLocation;
     zmanimCancelBtn.textContent = S.cancel;
@@ -178,8 +172,6 @@
   function openLocationForm(){
     zmanimLatInput.value = zmanimSettings.lat !== null ? zmanimSettings.lat : '';
     zmanimLonInput.value = zmanimSettings.lon !== null ? zmanimSettings.lon : '';
-    zmanimAlotInput.value = zmanimSettings.alotMin;
-    zmanimTzeitInput.value = zmanimSettings.tzeitMin;
     zmanimCandleInput.value = zmanimSettings.candleMin;
     zmanimSearchInput.value = '';
     hideSearchResults();
@@ -274,8 +266,6 @@
   zmanimSaveBtn.addEventListener('click', async () => {
     const lat = parseFloat(zmanimLatInput.value);
     const lon = parseFloat(zmanimLonInput.value);
-    const alotMin = parseFloat(zmanimAlotInput.value);
-    const tzeitMin = parseFloat(zmanimTzeitInput.value);
     const manualCandleMin = parseFloat(zmanimCandleInput.value);
     if (isNaN(lat) || isNaN(lon)) return;
 
@@ -309,8 +299,6 @@
       timezone: tz,
       label: place ? place.label : '',
       labelSource: place ? place.source : null,
-      alotMin: isNaN(alotMin) ? DEFAULT_ZMANIM_SETTINGS.alotMin : alotMin,
-      tzeitMin: isNaN(tzeitMin) ? DEFAULT_ZMANIM_SETTINGS.tzeitMin : tzeitMin,
       candleMin: candleMin
     };
     saveZmanimSettings(zmanimSettings);

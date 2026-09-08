@@ -95,8 +95,8 @@ function isSacredDay(date, israel){
 }
 
 // Builds the ordered list of zmanim for one day. `settings` is
-// {lat, lon, alotMin, tzeitMin, candleMin}. Returns an array of
-// {key, time: Date|null}; `key` is looked up against ZMANIM_LABELS for display.
+// {lat, lon, candleMin}. Returns an array of {key, time: Date|null};
+// `key` is looked up against ZMANIM_LABELS for display.
 function computeZmanim(date, israel, settings){
   const { sunrise, sunset } = sunTimesFor(date, settings.lat, settings.lon);
   const list = [];
@@ -106,7 +106,13 @@ function computeZmanim(date, israel, settings){
   const shaahZmanit = (sunset.getTime() - sunrise.getTime()) / 12; // ms
   const plus = (hours) => new Date(sunrise.getTime() + hours*shaahZmanit);
 
-  list.push({ key: 'alotHaShachar', time: addMinutes(sunrise, -settings.alotMin) });
+  // Alot HaShachar and Tzeit HaKochavim as sun-angle (depression) times
+  // rather than fixed minute offsets — 106.1° zenith (16.1° below horizon)
+  // for alot, 96° zenith (6° below horizon) for tzeit.
+  const alotTimes = sunTimesFor(date, settings.lat, settings.lon, 106.1);
+  const tzeitTimes = sunTimesFor(date, settings.lat, settings.lon, 96.0);
+
+  if (alotTimes.sunrise) list.push({ key: 'alotHaShachar', time: alotTimes.sunrise });
   list.push({ key: 'netzHaChamah', time: sunrise });
   list.push({ key: 'sofZmanShema', time: plus(3) });
   list.push({ key: 'sofZmanTefillah', time: plus(4) });
@@ -115,14 +121,14 @@ function computeZmanim(date, israel, settings){
   list.push({ key: 'minchaKetanah', time: plus(9.5) });
   list.push({ key: 'plagHaMincha', time: plus(10.75) });
   list.push({ key: 'shkiah', time: sunset });
-  list.push({ key: 'tzeitHaKochavim', time: addMinutes(sunset, settings.tzeitMin) });
+  if (tzeitTimes.sunset) list.push({ key: 'tzeitHaKochavim', time: tzeitTimes.sunset });
 
   const tomorrow = addDays(date, 1);
   if (isSacredDay(tomorrow, israel) && !isSacredDay(date, israel)){
     list.push({ key: 'candleLighting', time: addMinutes(sunset, -settings.candleMin) });
   }
-  if (isSacredDay(date, israel) && !isSacredDay(tomorrow, israel)){
-    list.push({ key: 'havdalah', time: addMinutes(sunset, settings.tzeitMin) });
+  if (isSacredDay(date, israel) && !isSacredDay(tomorrow, israel) && tzeitTimes.sunset){
+    list.push({ key: 'havdalah', time: tzeitTimes.sunset });
   }
 
   list.sort((a,b) => a.time.getTime() - b.time.getTime());
@@ -137,7 +143,7 @@ function formatTime(date, lang, timezone){
 
 const DEFAULT_ZMANIM_SETTINGS = {
   lat: null, lon: null, timezone: null, label: '', labelSource: null,
-  alotMin: 72, tzeitMin: 42, candleMin: 18
+  candleMin: 18
 };
 
 async function loadZmanimSettings(){
