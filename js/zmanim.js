@@ -108,14 +108,28 @@ function computeZmanim(date, israel, settings){
 
   // Alot HaShachar and Tzeit HaKochavim as sun-angle (depression) times
   // rather than fixed minute offsets — 106.1° zenith (16.1° below horizon)
-  // for alot, 96° zenith (6° below horizon) for tzeit.
+  // for alot, 96° zenith (6° below horizon) for tzeit. Misheyakir similarly
+  // at 101° (11° below horizon).
   const alotTimes = sunTimesFor(date, settings.lat, settings.lon, 106.1);
   const tzeitTimes = sunTimesFor(date, settings.lat, settings.lon, 96.0);
+  const misheyakirTimes = sunTimesFor(date, settings.lat, settings.lon, 101.0);
 
   if (alotTimes.sunrise) list.push({ key: 'alotHaShachar', time: alotTimes.sunrise });
+  if (misheyakirTimes.sunrise) list.push({ key: 'misheyakir', time: misheyakirTimes.sunrise });
   list.push({ key: 'netzHaChamah', time: sunrise });
   list.push({ key: 'sofZmanShema', time: plus(3) });
   list.push({ key: 'sofZmanTefillah', time: plus(4) });
+
+  // Sof Zman Shema/Tefillah per the Magen Avraham (M"A): the "day" runs
+  // alot-to-tzeit instead of sunrise-to-sunset, so its shaah zmanit — and
+  // therefore these times — differ from the Gra versions above.
+  if (alotTimes.sunrise && tzeitTimes.sunset){
+    const shaahZmanitMA = (tzeitTimes.sunset.getTime() - alotTimes.sunrise.getTime()) / 12;
+    const plusMA = (hours) => new Date(alotTimes.sunrise.getTime() + hours*shaahZmanitMA);
+    list.push({ key: 'sofZmanShemaMA', time: plusMA(3) });
+    list.push({ key: 'sofZmanTefillahMA', time: plusMA(4) });
+  }
+
   list.push({ key: 'chatzot', time: new Date((sunrise.getTime()+sunset.getTime())/2) });
   list.push({ key: 'minchaGedolah', time: plus(6.5) });
   list.push({ key: 'minchaKetanah', time: plus(9.5) });
