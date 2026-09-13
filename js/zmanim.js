@@ -130,6 +130,18 @@ function computeZmanim(date, israel, settings){
     list.push({ key: 'sofZmanTefillahMA', time: plusMA(4) });
   }
 
+  // Two more common M"A variants, using a fixed-minute "day" (sunrise minus
+  // N minutes to sunset plus N minutes) instead of the degree-based one
+  // above — 72 and 90 minutes are the two standard choices.
+  [72, 90].forEach(minutes => {
+    const dayStart = addMinutes(sunrise, -minutes);
+    const dayEnd = addMinutes(sunset, minutes);
+    const shaahZmanitFixed = (dayEnd.getTime() - dayStart.getTime()) / 12;
+    const plusFixed = (hours) => new Date(dayStart.getTime() + hours*shaahZmanitFixed);
+    list.push({ key: 'sofZmanShemaMA' + minutes, time: plusFixed(3) });
+    list.push({ key: 'sofZmanTefillahMA' + minutes, time: plusFixed(4) });
+  });
+
   list.push({ key: 'chatzot', time: new Date((sunrise.getTime()+sunset.getTime())/2) });
   list.push({ key: 'minchaGedolah', time: plus(6.5) });
   list.push({ key: 'minchaKetanah', time: plus(9.5) });
