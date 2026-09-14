@@ -120,27 +120,47 @@ function computeZmanim(date, israel, settings){
   list.push({ key: 'sofZmanShema', time: plus(3) });
   list.push({ key: 'sofZmanTefillah', time: plus(4) });
 
-  // Sof Zman Shema/Tefillah per the Magen Avraham (M"A): the "day" runs
-  // alot-to-tzeit instead of sunrise-to-sunset, so its shaah zmanit — and
-  // therefore these times — differ from the Gra versions above.
-  if (alotTimes.sunrise && tzeitTimes.sunset){
-    const shaahZmanitMA = (tzeitTimes.sunset.getTime() - alotTimes.sunrise.getTime()) / 12;
-    const plusMA = (hours) => new Date(alotTimes.sunrise.getTime() + hours*shaahZmanitMA);
-    list.push({ key: 'sofZmanShemaMA', time: plusMA(3) });
-    list.push({ key: 'sofZmanTefillahMA', time: plusMA(4) });
-  }
-
-  // Two more common M"A variants, using a fixed-minute "day" (sunrise minus
-  // N minutes to sunset plus N minutes) instead of the degree-based one
-  // above — 72 and 90 minutes are the two standard choices.
-  [72, 90].forEach(minutes => {
-    const dayStart = addMinutes(sunrise, -minutes);
-    const dayEnd = addMinutes(sunset, minutes);
-    const shaahZmanitFixed = (dayEnd.getTime() - dayStart.getTime()) / 12;
-    const plusFixed = (hours) => new Date(dayStart.getTime() + hours*shaahZmanitFixed);
-    list.push({ key: 'sofZmanShemaMA' + minutes, time: plusFixed(3) });
-    list.push({ key: 'sofZmanTefillahMA' + minutes, time: plusFixed(4) });
+  // Two Magen Avraham (M"A) degree-based variants — each uses its OWN
+  // symmetric alot/tzeit pair at that variant's depression angle (not the
+  // generic Alot/Tzeit shown above, which use different angles for each
+  // end): "MA72" at 16.11° (the standard ~72-minute-equivalent opinion),
+  // "MA90" at 19.86° (~90-minute-equivalent).
+  const maVariants = [
+    { suffix: 'MA72', degrees: 16.11 },
+    { suffix: 'MA90', degrees: 19.86 }
+  ];
+  maVariants.forEach(v => {
+    const t = sunTimesFor(date, settings.lat, settings.lon, 90 + v.degrees);
+    if (t.sunrise && t.sunset){
+      const shaahZmanitV = (t.sunset.getTime() - t.sunrise.getTime()) / 12;
+      const plusV = (hours) => new Date(t.sunrise.getTime() + hours*shaahZmanitV);
+      list.push({ key: 'sofZmanShema' + v.suffix, time: plusV(3) });
+      list.push({ key: 'sofZmanTefillah' + v.suffix, time: plusV(4) });
+    }
   });
+
+  // Older M"A approaches, intentionally not shown in the list right now —
+  // kept here (not deleted) in case they're wanted again later.
+  //
+  // Asymmetric degree-based M"A (alot at 106.1°, tzeit at 96° — i.e. the
+  // generic Alot/Tzeit displayed above, not a matched symmetric pair):
+  // if (alotTimes.sunrise && tzeitTimes.sunset){
+  //   const shaahZmanitMA = (tzeitTimes.sunset.getTime() - alotTimes.sunrise.getTime()) / 12;
+  //   const plusMA = (hours) => new Date(alotTimes.sunrise.getTime() + hours*shaahZmanitMA);
+  //   list.push({ key: 'sofZmanShemaMA', time: plusMA(3) });
+  //   list.push({ key: 'sofZmanTefillahMA', time: plusMA(4) });
+  // }
+  //
+  // Fixed-minute M"A ("day" = sunrise minus N minutes to sunset plus N
+  // minutes, instead of a sun-angle depression):
+  // [72, 90].forEach(minutes => {
+  //   const dayStart = addMinutes(sunrise, -minutes);
+  //   const dayEnd = addMinutes(sunset, minutes);
+  //   const shaahZmanitFixed = (dayEnd.getTime() - dayStart.getTime()) / 12;
+  //   const plusFixed = (hours) => new Date(dayStart.getTime() + hours*shaahZmanitFixed);
+  //   list.push({ key: 'sofZmanShemaFixed' + minutes, time: plusFixed(3) });
+  //   list.push({ key: 'sofZmanTefillahFixed' + minutes, time: plusFixed(4) });
+  // });
 
   list.push({ key: 'chatzot', time: new Date((sunrise.getTime()+sunset.getTime())/2) });
   list.push({ key: 'minchaGedolah', time: plus(6.5) });
