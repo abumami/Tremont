@@ -34,7 +34,7 @@ const STRINGS = {
       count + ' note' + (count === 1 ? '' : 's') + (hasZmanim ? ' and location settings' : '') +
       ' from a backup made ' + dateStr + '. Import and merge into your current data?',
     backupExported: 'Backup downloaded', backupImported: 'Backup imported',
-    backupInvalid: 'That doesn\u2019t look like a Tremont backup file.',
+    backupInvalid: 'That doesn\u2019t look like a Kaluach backup file.',
     locationSearchPlaceholder: 'Search for a city\u2026',
     orManually: 'or set coordinates manually'
   },
@@ -67,7 +67,7 @@ const STRINGS = {
       count + ' הערות' + (hasZmanim ? ' והגדרות מיקום' : '') +
       ' מתוך גיבוי מתאריך ' + dateStr + '. לייבא ולמזג עם הנתונים הנוכחיים?',
     backupExported: 'הגיבוי הורד', backupImported: 'הגיבוי יובא',
-    backupInvalid: 'זהו לא קובץ גיבוי תקין של Tremont.',
+    backupInvalid: 'זהו לא קובץ גיבוי תקין של Kaluach.',
     locationSearchPlaceholder: 'חיפוש עיר\u2026',
     orManually: 'או הזנת קואורדינטות ידנית'
   }
