@@ -22,7 +22,7 @@ async function buildBackupObject(){
   }
   const zmanimRaw = await LocalStore.get(BACKUP_ZMANIM_KEY);
   return {
-    app: 'tremont-calendar',
+    app: 'kaluach-calendar',
     version: BACKUP_FORMAT_VERSION,
     exportedAt: new Date().toISOString(),
     notes: notes,
@@ -45,12 +45,16 @@ function downloadJSON(obj, filename){
 async function exportBackup(){
   const data = await buildBackupObject();
   const dateStr = new Date().toISOString().slice(0,10);
-  downloadJSON(data, 'tremont-backup-' + dateStr + '.json');
+  downloadJSON(data, 'kaluach-backup-' + dateStr + '.json');
   return data;
 }
 
 function isValidBackup(data){
-  return !!(data && typeof data === 'object' && data.app === 'tremont-calendar' && data.notes && typeof data.notes === 'object');
+  // Accepts both the current app id and the old "tremont-calendar" one, so
+  // backup files exported before this rename can still be imported.
+  return !!(data && typeof data === 'object' &&
+    (data.app === 'kaluach-calendar' || data.app === 'tremont-calendar') &&
+    data.notes && typeof data.notes === 'object');
 }
 
 // Merges a parsed backup into storage: every note in the file overwrites
@@ -74,6 +78,14 @@ async function importBackup(data){
   const importBtn = document.getElementById('importBtn');
   const importFileInput = document.getElementById('importFileInput');
   const backupStatus = document.getElementById('backupStatus');
+  const exportInfoPanel = document.getElementById('exportInfoPanel');
+  const exportInfoText = document.getElementById('exportInfoText');
+  const exportConfirmBtn = document.getElementById('exportConfirmBtn');
+  const exportCancelBtn = document.getElementById('exportCancelBtn');
+  const importInfoPanel = document.getElementById('importInfoPanel');
+  const importInfoText = document.getElementById('importInfoText');
+  const importChooseFileBtn = document.getElementById('importChooseFileBtn');
+  const importInfoCancelBtn = document.getElementById('importInfoCancelBtn');
   const importPreview = document.getElementById('importPreview');
   const importSummary = document.getElementById('importSummary');
   const importConfirmBtn = document.getElementById('importConfirmBtn');
@@ -86,12 +98,34 @@ async function importBackup(data){
     setTimeout(() => { backupStatus.textContent = ''; }, 2500);
   }
 
-  exportBtn.addEventListener('click', async () => {
+  function hideAllBackupPanels(){
+    exportInfoPanel.classList.add('hidden');
+    importInfoPanel.classList.add('hidden');
+    importPreview.classList.add('hidden');
+  }
+
+  exportBtn.addEventListener('click', () => {
+    hideAllBackupPanels();
+    exportInfoPanel.classList.remove('hidden');
+  });
+  exportCancelBtn.addEventListener('click', () => {
+    exportInfoPanel.classList.add('hidden');
+  });
+  exportConfirmBtn.addEventListener('click', async () => {
     await exportBackup();
+    exportInfoPanel.classList.add('hidden');
     setStatus(STRINGS[AppState.lang].backupExported);
   });
 
   importBtn.addEventListener('click', () => {
+    hideAllBackupPanels();
+    importInfoPanel.classList.remove('hidden');
+  });
+  importInfoCancelBtn.addEventListener('click', () => {
+    importInfoPanel.classList.add('hidden');
+  });
+  importChooseFileBtn.addEventListener('click', () => {
+    importInfoPanel.classList.add('hidden');
     importFileInput.value = '';
     importFileInput.click();
   });
@@ -137,6 +171,12 @@ async function importBackup(data){
     const S = STRINGS[AppState.lang];
     exportBtn.textContent = S.exportBackup;
     importBtn.textContent = S.importBackup;
+    exportInfoText.textContent = S.exportInfoText;
+    exportConfirmBtn.textContent = S.downloadBackup;
+    exportCancelBtn.textContent = S.cancel;
+    importInfoText.textContent = S.importInfoText;
+    importChooseFileBtn.textContent = S.chooseFile;
+    importInfoCancelBtn.textContent = S.cancel;
     importConfirmBtn.textContent = S.importConfirm;
     importCancelBtn.textContent = S.cancel;
   };

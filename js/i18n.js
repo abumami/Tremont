@@ -35,6 +35,9 @@ const STRINGS = {
       ' from a backup made ' + dateStr + '. Import and merge into your current data?',
     backupExported: 'Backup downloaded', backupImported: 'Backup imported',
     backupInvalid: 'That doesn\u2019t look like a Kaluach backup file.',
+    exportInfoText: 'Your notes and location settings are stored only in this browser\u2019s local storage — clearing your browser data, or switching browsers or devices, can permanently erase them. This downloads a backup file you can keep somewhere safe and restore from later.',
+    importInfoText: 'This restores your notes and location settings from a backup file you saved earlier. You\u2019ll be asked to choose that file from your computer.',
+    downloadBackup: 'Download Backup', chooseFile: 'Choose File\u2026',
     locationSearchPlaceholder: 'Search for a city\u2026',
     orManually: 'or set coordinates manually'
   },
@@ -68,6 +71,9 @@ const STRINGS = {
       ' מתוך גיבוי מתאריך ' + dateStr + '. לייבא ולמזג עם הנתונים הנוכחיים?',
     backupExported: 'הגיבוי הורד', backupImported: 'הגיבוי יובא',
     backupInvalid: 'זהו לא קובץ גיבוי תקין של Kaluach.',
+    exportInfoText: 'ההערות והגדרות המיקום שלך נשמרות רק באחסון המקומי (local storage) של הדפדפן — ניקוי נתוני הדפדפן, או מעבר לדפדפן או מכשיר אחר, עלול למחוק אותן לצמיתות. פעולה זו מורידה קובץ גיבוי שתוכל/י לשמור במקום בטוח ולשחזר ממנו בעתיד.',
+    importInfoText: 'פעולה זו משחזרת את ההערות והגדרות המיקום שלך מקובץ גיבוי שנשמר בעבר. תתבקש/י לבחור את הקובץ מהמחשב שלך.',
+    downloadBackup: 'הורד גיבוי', chooseFile: 'בחר/י קובץ\u2026',
     locationSearchPlaceholder: 'חיפוש עיר\u2026',
     orManually: 'או הזנת קואורדינטות ידנית'
   }

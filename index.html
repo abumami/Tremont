@@ -93,10 +93,24 @@
     </div>
     <div class="save-note" id="saveNote"></div>
     <div id="backupWrap">
-      <button class="link-btn" id="exportBtn"></button>
-      <button class="link-btn" id="importBtn"></button>
+      <button class="today-btn" id="exportBtn"></button>
+      <button class="today-btn" id="importBtn"></button>
       <input type="file" id="importFileInput" accept="application/json" class="hidden">
       <span class="save-note" id="backupStatus"></span>
+    </div>
+    <div id="exportInfoPanel" class="zmanim-settings hidden">
+      <p id="exportInfoText"></p>
+      <div class="zmanim-settings-actions">
+        <button class="today-btn" id="exportConfirmBtn"></button>
+        <button class="link-btn" id="exportCancelBtn"></button>
+      </div>
+    </div>
+    <div id="importInfoPanel" class="zmanim-settings hidden">
+      <p id="importInfoText"></p>
+      <div class="zmanim-settings-actions">
+        <button class="today-btn" id="importChooseFileBtn"></button>
+        <button class="link-btn" id="importInfoCancelBtn"></button>
+      </div>
     </div>
     <div id="importPreview" class="zmanim-settings hidden">
       <p id="importSummary"></p>
